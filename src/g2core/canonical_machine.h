@@ -33,8 +33,8 @@
 #define CANONICAL_MACHINE_H_ONCE
 
 #include "config.h"
-#include "hardware.h"                       // Note: hardware.h is specific to the hardware target selected
 #include "settings.h"
+#include "../board/dStepko/hardware.h"                       // Note: hardware.h is specific to the hardware target selected
 
 #if MARLIN_COMPAT_ENABLED == true
 #include "marlin_compatibility.h"           // import Marlin definitions and enums

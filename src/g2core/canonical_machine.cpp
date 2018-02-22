@@ -89,7 +89,6 @@
 #include "g2core.h"  // #1
 #include "config.h"  // #2
 #include "canonical_machine.h"
-#include "hardware.h"
 #include "controller.h"
 #include "json_parser.h"
 #include "text_parser.h"
@@ -105,9 +104,10 @@
 #include "report.h"
 #include "gpio.h"
 #include "temperature.h"
-#include "hardware.h"
 #include "util.h"
 #include "xio.h"            // for serial queue flush
+#include "../board/dStepko/hardware.h"
+#include "../board/dStepko/hardware.h"
 
 /***********************************************************************************
  **** STRUCTURE ALLOCATIONS ********************************************************

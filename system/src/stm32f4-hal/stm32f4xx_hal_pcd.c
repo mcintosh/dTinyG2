@@ -1081,6 +1081,9 @@ HAL_StatusTypeDef HAL_PCD_EP_Transmit(PCD_HandleTypeDef *hpcd, uint8_t ep_addr, 
     ep->dma_addr = (uint32_t)pBuf;  
   }
   
+  /* Disable USBHS Interrupt */
+  HAL_NVIC_DisableIRQ(OTG_HS_IRQn);
+
   __HAL_LOCK(hpcd); 
   
   if ((ep_addr & 0x7FU) == 0U)
@@ -1093,6 +1096,9 @@ HAL_StatusTypeDef HAL_PCD_EP_Transmit(PCD_HandleTypeDef *hpcd, uint8_t ep_addr, 
   }
   
   __HAL_UNLOCK(hpcd);
+
+  /* Enable USBHS Interrupt */
+  HAL_NVIC_EnableIRQ(OTG_HS_IRQn);
      
   return HAL_OK;
 }

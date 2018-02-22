@@ -277,17 +277,46 @@ struct Timer {
 	void setExactDutyCycle(const uint8_t channel, const uint32_t absolute) {
 		//tc()->CONTROLS[channel].CnV = absolute;
 
-		if(!channel || channel > MAX_CHANNEL)
-			return;
-
-		__HAL_TIM_SET_COMPARE(&TimHandle, TIM_CHANNEL_1, absolute);
+		uint32_t chan = 0;
+		switch (channel) {
+			case 1:
+				chan = TIM_CHANNEL_1;
+				break;
+			case 2:
+				chan = TIM_CHANNEL_2;
+				break;
+			case 3:
+				chan = TIM_CHANNEL_3;
+				break;
+			case 4:
+				chan = TIM_CHANNEL_4;
+				break;
+			default:
+				return;
+		}
+		__HAL_TIM_SET_COMPARE(&TimHandle, chan, absolute);
 
 	};
 
 	void setOutputOptions(const uint8_t channel, const uint32_t options) {
 
-		if(!channel || channel > MAX_CHANNEL)
-			return;
+		uint32_t chan = 0;
+		switch (channel) {
+			case 1:
+				chan = TIM_CHANNEL_1;
+				break;
+			case 2:
+				chan = TIM_CHANNEL_2;
+				break;
+			case 3:
+				chan = TIM_CHANNEL_3;
+				break;
+			case 4:
+				chan = TIM_CHANNEL_4;
+				break;
+			default:
+				return;
+		}
 
 		if (options & kToggleOnMatch) {
 			//bit_options = TPM_CnSC_ELSA_MASK | TPM_CnSC_MSA_MASK;
@@ -308,7 +337,7 @@ struct Timer {
 		}
 
 		/* Set the pulse value for channel 1 */
-		if (HAL_TIM_PWM_ConfigChannel(&TimHandle, &ChannelConfig[channel-1], TIM_CHANNEL_1) != HAL_OK)
+		if (HAL_TIM_PWM_ConfigChannel(&TimHandle, &ChannelConfig[channel-1], chan) != HAL_OK)
 		{
 			/* Configuration Error */
 			while(1);//Error_Handler();
@@ -329,8 +358,23 @@ struct Timer {
 	// ASSUMPTION: The pin is not and was not in Toggle mode.
 	void startPWMOutput(const uint8_t channel) {
 
-		if(!channel || channel > MAX_CHANNEL)
-			return;
+		uint32_t chan = 0;
+		switch (channel) {
+			case 1:
+				chan = TIM_CHANNEL_1;
+				break;
+			case 2:
+				chan = TIM_CHANNEL_2;
+				break;
+			case 3:
+				chan = TIM_CHANNEL_3;
+				break;
+			case 4:
+				chan = TIM_CHANNEL_4;
+				break;
+			default:
+				return;
+		}
 		/*
             tc()->CONTROLS[channel].CnSC = (tc()->CONTROLS[channel].CnSC & ~(
                                                                              TPM_CnSC_ELSA_MASK |
@@ -339,7 +383,7 @@ struct Timer {
 		 */
 		/* Set the pulse value for channel 1 */
 		ChannelConfig[channel-1].Pulse = TimHandle.Init.Period/2;
-		if (HAL_TIM_PWM_ConfigChannel(&TimHandle, &ChannelConfig[channel-1], TIM_CHANNEL_1/*TIM_CHANNEL_1*/) != HAL_OK)
+		if (HAL_TIM_PWM_ConfigChannel(&TimHandle, &ChannelConfig[channel-1], chan/*TIM_CHANNEL_1*/) != HAL_OK)
 		{
 			/* Configuration Error */
 			//Error_Handler();
@@ -347,7 +391,7 @@ struct Timer {
 		}
 
 		/* Start channel 1 */
-		if (HAL_TIM_PWM_Start(&TimHandle, TIM_CHANNEL_1/*TIM_CHANNEL_1*/) != HAL_OK)
+		if (HAL_TIM_PWM_Start(&TimHandle, chan/*TIM_CHANNEL_1*/) != HAL_OK)
 		{
 			/* PWM Generation Error */
 			while(1);//Error_Handler();
@@ -359,8 +403,23 @@ struct Timer {
 	// ASSUMPTION: The pin is not in Toggle mode.
 	void stopPWMOutput(const uint8_t channel) {
 
-		if(!channel || channel > MAX_CHANNEL)
-			return;
+		uint32_t chan = 0;
+		switch (channel) {
+			case 1:
+				chan = TIM_CHANNEL_1;
+				break;
+			case 2:
+				chan = TIM_CHANNEL_2;
+				break;
+			case 3:
+				chan = TIM_CHANNEL_3;
+				break;
+			case 4:
+				chan = TIM_CHANNEL_4;
+				break;
+			default:
+				return;
+		}
 
 		/*
             tc()->CONTROLS[channel].CnSC =
@@ -370,7 +429,7 @@ struct Timer {
                                               ));
 		 */
 		/* Start channel 1 */
-		if (HAL_TIM_PWM_Stop(&TimHandle, TIM_CHANNEL_1/*TIM_CHANNEL_1*/) != HAL_OK)
+		if (HAL_TIM_PWM_Stop(&TimHandle, chan/*TIM_CHANNEL_1*/) != HAL_OK)
 		{
 			/* PWM Generation Error */
 			while(1);//Error_Handler();

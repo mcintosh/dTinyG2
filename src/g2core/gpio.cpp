@@ -45,7 +45,6 @@
 #include "gpio.h"
 #include "stepper.h"
 #include "encoder.h"
-#include "hardware.h"
 #include "canonical_machine.h"
 
 #include "text_parser.h"
@@ -55,6 +54,8 @@
 #include "xio.h"
 
 #include "MotateTimers.h"
+
+#include "../board/dStepko/hardware.h"
 using namespace Motate;
 
 /**** Allocate structures ****/

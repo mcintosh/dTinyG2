@@ -248,7 +248,8 @@
 // These includes must be BEFORE the STEPPER_H_ONCE is defined
 #include "g2core.h"
 #include "report.h"
-#include "board_stepper.h"  // include board specific stuff, in particular the Stepper objects
+
+#include "../board/dStepko/board_stepper.h"  // include board specific stuff, in particular the Stepper objects
 
 // NOW we can do this:
 #ifndef STEPPER_H_ONCE

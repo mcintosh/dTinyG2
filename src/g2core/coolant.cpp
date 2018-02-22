@@ -32,8 +32,8 @@
 
 #include "coolant.h"
 #include "planner.h"
-#include "hardware.h"
 #include "util.h"
+#include "../board/dStepko/hardware.h"
 
 /**** Allocate structures ****/
 

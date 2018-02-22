@@ -348,13 +348,19 @@ static void _send_probe_report() {
         char* bufp = buf;
         bufp += sprintf(bufp, "{\"prb\":{\"e\":%i, \"", (int)cm.probe_state[0]);
         if (pb.flags[AXIS_X]) {
-            sprintf(bufp, "x\":%0.3f}}\n", cm.probe_results[0][AXIS_X]);
+            bufp += sprintf(bufp, "z\":");
+            bufp += floattoa(bufp, cm.probe_results[0][AXIS_X], 3);
+            sprintf(bufp, "}}\n");
         }
         if (pb.flags[AXIS_Y]) {
-            sprintf(bufp, "y\":%0.3f}}\n", cm.probe_results[0][AXIS_Y]);
+            bufp += sprintf(bufp, "z\":");
+            bufp += floattoa(bufp, cm.probe_results[0][AXIS_Y], 3);
+            sprintf(bufp, "}}\n");
         }
         if (pb.flags[AXIS_Z]) {
-            sprintf(bufp, "z\":%0.3f}}\n", cm.probe_results[0][AXIS_Z]);
+            bufp += sprintf(bufp, "z\":");
+            bufp += floattoa(bufp, cm.probe_results[0][AXIS_Z], 3);
+            sprintf(bufp, "}}\n");
         }
         if (pb.flags[AXIS_A]) {
             sprintf(bufp, "a\":%0.3f}}\n", cm.probe_results[0][AXIS_A]);

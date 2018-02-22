@@ -57,26 +57,24 @@
 // Communications and reporting settings
 
 #define USB_SERIAL_PORTS_EXPOSED	1						// 1=single endpoint usb, 2=dual endpoint usb
-#define COMM_MODE                   JSON_MODE               // one of: TEXT_MODE, JSON_MODE, MARLIN_COMM_MODE
+#define COMM_MODE                   JSON_MODE               // one of: TEXT_MODE, JSON_MODE
 #define XIO_ENABLE_FLOW_CONTROL FLOW_CONTROL_RTS            // FLOW_CONTROL_OFF, FLOW_CONTROL_RTS
 
-#define MARLIN_COMPAT_ENABLED             false                    // enable marlin compatibility mode
-#define COMM_MODE                         JSON_MODE               // one of: TEXT_MODE, JSON_MODE
-#define XIO_ENABLE_FLOW_CONTROL           FLOW_CONTROL_RTS        // FLOW_CONTROL_OFF, FLOW_CONTROL_RTS
-#define XIO_UART_MUTES_WHEN_USB_CONNECTED 1                       // Mute the UART when USB connects
+#define TEXT_VERBOSITY              TV_VERBOSE              // one of: TV_SILENT, TV_VERBOSE
+#define JSON_VERBOSITY              JV_MESSAGES             // one of: JV_SILENT, JV_FOOTER, JV_CONFIGS, JV_MESSAGES, JV_LINENUM, JV_VERBOSE
+#define QUEUE_REPORT_VERBOSITY      QR_OFF                  // one of: QR_OFF, QR_SINGLE, QR_TRIPLE
 
-#define TEXT_VERBOSITY                    TV_VERBOSE              // one of: TV_SILENT, TV_VERBOSE
-#define JSON_VERBOSITY                    JV_LINENUM              // one of: JV_SILENT, JV_FOOTER, JV_CONFIGS, JV_MESSAGES, JV_LINENUM, JV_VERBOSE
-#define QUEUE_REPORT_VERBOSITY            QR_OFF                  // one of: QR_OFF, QR_SINGLE, QR_TRIPLE
+#define STATUS_REPORT_VERBOSITY     SR_FILTERED             // one of: SR_OFF, SR_FILTERED, SR_VERBOSE
 
-#define STATUS_REPORT_VERBOSITY           SR_FILTERED             // one of: SR_OFF, SR_FILTERED, SR_VERBOSE
-#define STATUS_REPORT_MIN_MS              100                     // milliseconds - enforces a viable minimum
-#define STATUS_REPORT_INTERVAL_MS         250                     // milliseconds - set $SV=0 to disable
+#define STATUS_REPORT_MIN_MS        100                     // milliseconds - enforces a viable minimum
+#define STATUS_REPORT_INTERVAL_MS   250                     // milliseconds - set $SV=0 to disable
 
-// Defaults for 3DP
-#define STATUS_REPORT_DEFAULTS            \
-    "line","posx","posy","posz","posa","vel","he1t","he1st","he1at","he1op","feed","vel","unit","path","stat", \
-    "he2t","he2st","he2at","he2op","he3t","he3st","he3at","he3op"
+//#define STATUS_REPORT_DEFAULTS "line","posx","posy","posz","posa","feed","vel","unit","coor","dist","admo","frmo","momo","stat"
+//#define STATUS_REPORT_DEFAULTS "line","posx","posy","posz","feed","vel","momo","stat"
+
+// Alternate SRs that report in drawable units
+#define STATUS_REPORT_DEFAULTS "line","posx","posy","posz", "prbe", "prbx", "prby", "prbz", "vel","mpox","mpoy","mpoz","mpoa","coor","ofsa","ofsx","ofsy","ofsz","dist","unit","stat","homz","homy","homx","momo"
+//#define STATUS_REPORT_DEFAULTS "_ts1","_cs1","_es1","_xs1","_fe1","line","posx","posy","posz","vel","stat"
 
 // Gcode startup defaults
 #define GCODE_DEFAULT_UNITS         MILLIMETERS             // MILLIMETERS or INCHES
@@ -93,7 +91,7 @@
 #define M1_MOTOR_MAP                AXIS_Y                  // 1ma
 #define M1_STEP_ANGLE               1.8                     // 1sa
 #define M1_TRAVEL_PER_REV           5                   // 1tr
-#define M1_MICROSTEPS               32                       // 1mi  1,2,4,8,16,32
+#define M1_MICROSTEPS               8                       // 1mi  1,2,4,8,16,32
 #define M1_POLARITY                 1                       // 1po  0=normal, 1=reversed
 #define M1_POWER_MODE               MOTOR_POWER_MODE        // 1pm  TRUE=low power idle enabled
 #define M1_POWER_LEVEL              0.500
@@ -101,7 +99,7 @@
 #define M2_MOTOR_MAP                AXIS_Y
 #define M2_STEP_ANGLE               1.8
 #define M2_TRAVEL_PER_REV           5
-#define M2_MICROSTEPS               32
+#define M2_MICROSTEPS               8
 #define M2_POLARITY                 1
 #define M2_POWER_MODE               MOTOR_POWER_MODE
 #define M2_POWER_LEVEL              0.500
@@ -109,7 +107,7 @@
 #define M3_MOTOR_MAP                AXIS_X
 #define M3_STEP_ANGLE               1.8
 #define M3_TRAVEL_PER_REV           5
-#define M3_MICROSTEPS               32
+#define M3_MICROSTEPS               8
 #define M3_POLARITY                 0
 #define M3_POWER_MODE               MOTOR_POWER_MODE
 #define M3_POWER_LEVEL              0.500
@@ -117,7 +115,7 @@
 #define M4_MOTOR_MAP                AXIS_Z
 #define M4_STEP_ANGLE               1.8
 #define M4_TRAVEL_PER_REV           5
-#define M4_MICROSTEPS               32
+#define M4_MICROSTEPS               8
 #define M4_POLARITY                 1
 #define M4_POWER_MODE               MOTOR_POWER_MODE
 #define M4_POWER_LEVEL              0.500
@@ -152,7 +150,7 @@
 #define Y_VELOCITY_MAX              3000
 #define Y_FEEDRATE_MAX              Y_VELOCITY_MAX
 #define Y_TRAVEL_MIN                0
-#define Y_TRAVEL_MAX                420
+#define Y_TRAVEL_MAX                500
 #define Y_JERK_MAX                  JERK_MAX
 #define Y_JERK_HIGH_SPEED           JERK_MAX
 #define Y_HOMING_INPUT              7
@@ -165,11 +163,11 @@
 #define Z_AXIS_MODE                 AXIS_STANDARD
 #define Z_VELOCITY_MAX              2000
 #define Z_FEEDRATE_MAX              Z_VELOCITY_MAX
-#define Z_TRAVEL_MAX                0
-#define Z_TRAVEL_MIN                -95
-#define Z_JERK_MAX                  500
-#define Z_JERK_HIGH_SPEED           800
-#define Z_HOMING_INPUT              6
+#define Z_TRAVEL_MAX                190
+#define Z_TRAVEL_MIN                -20
+#define Z_JERK_MAX                  300
+#define Z_JERK_HIGH_SPEED           300
+#define Z_HOMING_INPUT              0
 #define Z_HOMING_DIRECTION          1
 #define Z_SEARCH_VELOCITY           (Z_VELOCITY_MAX * 0.66666)
 #define Z_LATCH_VELOCITY            25
@@ -234,15 +232,15 @@
 #define DI4_FUNCTION                INPUT_FUNCTION_LIMIT
 
 // Zmin
-#define DI5_MODE                    IO_ACTIVE_LOW   // Z probe
+#define DI5_MODE                    IO_MODE_DISABLED
 #define DI5_ACTION                  INPUT_ACTION_NONE
-#define DI5_FUNCTION                INPUT_FUNCTION_PROBE
+#define DI5_FUNCTION                INPUT_FUNCTION_LIMIT
 
 // Zmax
-#define DI6_MODE                    IO_ACTIVE_LOW
+#define DI6_MODE                    IO_MODE_DISABLED
 //#define DI6_ACTION                  INPUT_ACTION_STOP
 #define DI6_ACTION                  INPUT_ACTION_NONE
-#define DI6_FUNCTION                INPUT_FUNCTION_PROBE
+#define DI6_FUNCTION                INPUT_FUNCTION_LIMIT
 
 // Amin
 #define DI7_MODE                    IO_ACTIVE_LOW
@@ -250,9 +248,9 @@
 #define DI7_FUNCTION                INPUT_FUNCTION_LIMIT
 
 // Amax
-#define DI8_MODE                    IO_MODE_DISABLED
+#define DI8_MODE                    IO_ACTIVE_LOW   // Z probe
 #define DI8_ACTION                  INPUT_ACTION_NONE
-#define DI8_FUNCTION                INPUT_FUNCTION_NONE
+#define DI8_FUNCTION                INPUT_FUNCTION_PROBE
 
 // Hardware interlock input
 #define DI9_MODE                    IO_MODE_DISABLED
@@ -283,3 +281,40 @@
 #define H3_DEFAULT_P                      9.0
 #define H3_DEFAULT_I                      0.12
 #define H3_DEFAULT_D                      400.0
+
+
+
+
+
+// *** PWM Settings *** //
+
+#ifndef P1_PWM_FREQUENCY
+#define P1_PWM_FREQUENCY            100000                   // in Hz
+#endif
+#ifndef P1_CW_SPEED_LO
+#define P1_CW_SPEED_LO              6000                  // in RPM (arbitrary units)
+#endif
+#ifndef P1_CW_SPEED_HI
+#define P1_CW_SPEED_HI              24000
+#endif
+#ifndef P1_CW_PHASE_LO
+#define P1_CW_PHASE_LO              0.25                    // phase [0..1]
+#endif
+#ifndef P1_CW_PHASE_HI
+#define P1_CW_PHASE_HI              1.0
+#endif
+#ifndef P1_CCW_SPEED_LO
+#define P1_CCW_SPEED_LO             0.0
+#endif
+#ifndef P1_CCW_SPEED_HI
+#define P1_CCW_SPEED_HI             0.0
+#endif
+#ifndef P1_CCW_PHASE_LO
+#define P1_CCW_PHASE_LO             0.1
+#endif
+#ifndef P1_CCW_PHASE_HI
+#define P1_CCW_PHASE_HI             0.1
+#endif
+#ifndef P1_PWM_PHASE_OFF
+#define P1_PWM_PHASE_OFF            0.1
+#endif

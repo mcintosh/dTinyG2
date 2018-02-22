@@ -33,11 +33,11 @@
 
 #include "temperature.h"
 #include "planner.h"
-#include "hardware.h"
 #include "pwm.h"
 #include "report.h"
 #include "util.h"
 #include "settings.h"
+#include "../board/dStepko/hardware.h"
 
 
 /**** Local safety/limit settings ****/

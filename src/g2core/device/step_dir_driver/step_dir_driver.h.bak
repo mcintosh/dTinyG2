@@ -116,26 +116,26 @@ struct StepDirStepper final : Stepper  {
 
     void _enableImpl() override {
         if (!_enable.isNull()) {
-            _enable.clear();
+            _enable.set();
         }
     };
 
     void _disableImpl() override {
         if (!_enable.isNull()) {
-            _enable.set();
+            _enable.clear();
         }
     };
 
-    void stepStart() override { _step.set(); };
+    void stepStart() override { _step.clear(); };
 
-    void stepEnd() override { _step.clear(); };
+    void stepEnd() override { _step.set(); };
 
     void setDirection(uint8_t new_direction) override {
         if (!_dir.isNull()) {
             if (new_direction == DIRECTION_CW) {
-                _dir.clear();
+                _dir.set();
             } else {
-                _dir.set();  // set the bit for CCW motion
+                _dir.clear();  // set the bit for CCW motion
             }
         }
     };

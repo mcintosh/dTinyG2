@@ -27,12 +27,15 @@
 
 #include "g2core.h"  // #1
 #include "config.h"  // #2
-#include "hardware.h"
+
+#include "../board/dStepko/hardware.h"
+
 #include "spindle.h"
 #include "text_parser.h"
 #include "pwm.h"
 #include "canonical_machine.h"
 #include "settings.h"
+
 
 /***** PWM defines, structures and memory allocation *****/
 

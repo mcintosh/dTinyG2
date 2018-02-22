@@ -36,10 +36,10 @@
 #include "json_parser.h"
 #include "text_parser.h"
 #include "persistence.h"
-#include "hardware.h"
 #include "help.h"
 #include "util.h"
 #include "xio.h"
+#include "../board/dStepko/hardware.h"
 
 static void _set_defa(nvObj_t *nv, bool print);
 

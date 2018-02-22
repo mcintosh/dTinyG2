@@ -86,7 +86,7 @@
  *	not be worth the trouble).
  */
 
-#include "hardware.h"  // for MOTORS
+#include "../board/dStepko/hardware.h"  // for MOTORS
 
 #ifndef ENCODER_H_ONCE
 #define ENCODER_H_ONCE

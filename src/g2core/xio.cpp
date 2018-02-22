@@ -32,16 +32,16 @@
  */
 #include "g2core.h"
 #include "config.h"
-#include "hardware.h"
 #include "xio.h"
 #include "report.h"
 #include "controller.h"
 #include "util.h"
 #include "settings.h"
 
-#include "board_xio.h"
-
 #include "MotateBuffer.h"
+
+#include "../board/dStepko/board_xio.h"
+#include "../board/dStepko/hardware.h"
 using Motate::RXBuffer;
 using Motate::TXBuffer;
 

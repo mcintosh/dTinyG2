@@ -32,9 +32,9 @@
 
 #include "spindle.h"
 #include "planner.h"
-#include "hardware.h"
 #include "pwm.h"
 #include "util.h"
+#include "../board/dStepko/hardware.h"
 
 /**** Allocate structures ****/
 

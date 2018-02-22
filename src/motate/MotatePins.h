@@ -331,7 +331,8 @@ namespace Motate {
         IRQPin() : Pin<pinNum>(kInput) {};
         IRQPin(const PinOptions_t options) : Pin<pinNum>(kInput, options) {};
         IRQPin(const std::function<void(void)> &&_interrupt) : Pin<pinNum>(kInput) {};
-        IRQPin(const PinOptions_t options, const std::function<void(void)> &&_interrupt, const uint32_t interrupt_settings = kPinInterruptOnChange|kPinInterruptPriorityMedium) : Pin<pinNum>(kInput, options) {};
+        IRQPin(const PinOptions_t options, const std::function<void(void)> &&_interrupt,
+        		const uint32_t interrupt_settings = kPinInterruptOnChange|kPinInterruptPriorityHighest) : Pin<pinNum>(kInput, options) {};
 
         void init(const PinOptions_t options = kNormal  ) {
         	Pin<pinNum>::init(kInput, options);
@@ -675,7 +676,7 @@ namespace Motate {
 // Note: We end the namespace before including in case the included file need to include
 //   another Motate file. If it does include another Motate file, we end up with
 //   Motate::Motate::* definitions and weird compiler errors.
-#include "motate_pin_assignments.h"
+#include "../board/dStepko/motate_pin_assignments.h"
 
 
 #endif /* end of include guard: MOTATEPINS_H_ONCE */

@@ -26,14 +26,15 @@
  * OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "../dStepko/board_xio.h"
+
 #include "g2core.h"
 #include "config.h"
-#include "hardware.h"
-#include "board_xio.h"
 #include "MotateTimers.h"
 #include "usbd_desc.h"
 #include "usbd_cdc.h"
 #include "usbd_cdc_interface.h"
+#include "../dStepko/hardware.h"
 
 
 //******** USB ********

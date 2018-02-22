@@ -34,7 +34,6 @@
 #include "stepper.h"
 #include "encoder.h"
 #include "planner.h"
-#include "hardware.h"
 #include "text_parser.h"
 #include "util.h"
 #include "controller.h"
@@ -43,6 +42,7 @@
 /**** Debugging output with semihosting ****/
 
 #include "MotateDebug.h"
+#include "../board/dStepko/hardware.h"
 
 // Unless debugging, this should always read "#if 0 && ..."
 // DON'T COMMIT with anything else!

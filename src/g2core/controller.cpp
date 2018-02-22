@@ -38,7 +38,6 @@
 #include "stepper.h"
 #include "temperature.h"
 #include "encoder.h"
-#include "hardware.h"
 #include "gpio.h"
 #include "report.h"
 #include "help.h"
@@ -47,6 +46,7 @@
 #include "settings.h"
 
 #include "MotatePower.h"
+#include "../board/dStepko/hardware.h"
 
 #if MARLIN_COMPAT_ENABLED == true
 #include "marlin_compatibility.h"

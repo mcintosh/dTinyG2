@@ -26,16 +26,16 @@
  * OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "../dStepko/hardware.h"
+
 #include "g2core.h"  // #1
 #include "config.h"  // #2
-#include "hardware.h"
 #include "controller.h"
 #include "text_parser.h"
-#include "board_xio.h"
-
 #include "MotateUtilities.h"
 #include "MotateUniqueID.h"
 #include "MotatePower.h"
+#include "../dStepko/board_xio.h"
 
 /*
  * hardware_init() - lowest level hardware init

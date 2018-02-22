@@ -43,10 +43,10 @@
 #include "coolant.h"
 #include "pwm.h"
 #include "report.h"
-#include "hardware.h"
 #include "util.h"
 #include "help.h"
 #include "xio.h"
+#include "../board/dStepko/hardware.h"
 
 /*** structures ***/
 

@@ -22,7 +22,6 @@
 
 #include "g2core.h"  // #1 There are some dependencies
 #include "config.h"  // #2
-#include "hardware.h"
 #include "persistence.h"
 #include "controller.h"
 #include "canonical_machine.h"
@@ -39,6 +38,7 @@
 
 #include "util.h"
 #include "MotateUniqueID.h"
+#include "../board/dStepko/hardware.h"
 
 /***** NOTE: *****
 
