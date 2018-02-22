@@ -114,6 +114,7 @@ struct Thermistor {
 
     ADCPin<adc_pin_num> adc_pin;
     uint16_t raw_adc_value = 0;
+    float   filtered_adc_value = 0;
 
     typedef Thermistor<adc_pin_num, min_temp, max_temp, table_size> type;
 
@@ -168,11 +169,11 @@ struct Thermistor {
 
     float temperature_exact() {
         // Sanity check:
-        if (raw_adc_value < 1) {
+        if (filtered_adc_value < 1) {
             return -1; // invalid temperature from a thermistor
         }
 
-        float v = (float)raw_adc_value * kSystemVoltage / (adc_pin.getTop()); // convert the 10 bit ADC value to a voltage
+        float v = (float)filtered_adc_value * kSystemVoltage / (adc_pin.getTop()); // convert the 10 bit ADC value to a voltage
         float r = ((pullup_resistance * v) / (kSystemVoltage - v)) - inline_resistance;   // resistance of thermistor
 
         if ((r < 0) || (r > TEMP_MIN_DISCONNECTED_RESISTANCE)) {
@@ -185,17 +186,18 @@ struct Thermistor {
     };
 
     float get_resistance() {
-        if (raw_adc_value < 1) {
+        if (filtered_adc_value < 1) {
             return -1; // invalid temperature from a thermistor
         }
 
-        float v = (float)raw_adc_value * kSystemVoltage / (adc_pin.getTop()); // convert the 10 bit ADC value to a voltage
+        float v = (float)filtered_adc_value * kSystemVoltage / (adc_pin.getTop()); // convert the 10 bit ADC value to a voltage
         return ((pullup_resistance * v) / (kSystemVoltage - v)) - inline_resistance;   // resistance of thermistor
     }
 
     // Call back function from the ADC to tell it that the ADC has a new sample...
     void adc_has_new_value() {
-        raw_adc_value = (adc_pin.getRaw() + (9 * raw_adc_value))/10;
+        raw_adc_value = adc_pin.getRaw();
+        filtered_adc_value = (raw_adc_value + (5.0f * raw_adc_value))/8.0f;
     };
 };
 
@@ -205,7 +207,7 @@ struct Thermistor {
 // Extruder 1
 Thermistor<kADC1_PinNumber> thermistor1 {
     /*T1:*/     20.0, /*T2:*/  195.0, /*T3:*/ 255.0,
-    /*R1:*/ 140000.0, /*R2:*/  593.0, /*R3:*/ 189.0, /*pullup_resistance:*/ 4700, /*inline_resistance:*/ 4700
+    /*R1:*/ 140000.0, /*R2:*/  593.0, /*R3:*/ 189.0, /*pullup_resistance:*/ 4700, /*inline_resistance:*/ 0
     };
 
 #if ADC1_AVAILABLE == 1
@@ -220,7 +222,7 @@ void ADCPin<kADC1_PinNumber>::interrupt() {
 // Extruder 2
 Thermistor<kADC2_PinNumber> thermistor2 {
     /*T1:*/     20.0, /*T2:*/  190.0, /*T3:*/ 255.0,
-    /*R1:*/ 140000.0, /*R2:*/  490.0, /*R3:*/ 109.0, /*pullup_resistance:*/ 4700, /*inline_resistance:*/ 4700
+    /*R1:*/ 140000.0, /*R2:*/  490.0, /*R3:*/ 109.0, /*pullup_resistance:*/ 4700, /*inline_resistance:*/ 0
     };
 #if ADC2_AVAILABLE == 1
 namespace Motate {
@@ -234,7 +236,7 @@ void ADCPin<kADC2_PinNumber>::interrupt() {
 // Heated bed
 Thermistor<kADC0_PinNumber> thermistor3 {
     /*T1:*/     20.0, /*T2:*/     42.0, /*T3:*/ 76.0,
-    /*R1:*/ 140000.0, /*R2:*/  36755.0, /*R3:*/ 10000.0, /*pullup_resistance:*/ 4700, /*inline_resistance:*/ 4700
+    /*R1:*/ 140000.0, /*R2:*/  36755.0, /*R3:*/ 10000.0, /*pullup_resistance:*/ 4700, /*inline_resistance:*/ 0
     };
 #if ADC0_AVAILABLE == 1
 namespace Motate {
@@ -250,28 +252,29 @@ float last_reported_temp2 = 0;
 float last_reported_temp3 = 0;
 
 
+
 // Output 1 FET info
 // DO_1: Extruder1_PWM
-const int16_t fet_pin1_freq = 100;
+const int16_t fet_pin1_freq = 1000;
 #if TEMPERATURE_OUTPUT_ON == 1
-PWMOutputPin<kOutput1_PinNumber> fet_pin1;// {kPWMPinInverted};
+PWMOutputPin<kOutput14_PinNumber> fet_pin1(kPWMPinInverted, fet_pin1_freq);// {kPWMPinInverted};
 #else
 PWMOutputPin<-1> fet_pin1;// {kPWMPinInverted};
 #endif
 
 // DO_2: Extruder2_PWM
-const int16_t fet_pin2_freq = 100;
+const int16_t fet_pin2_freq = 1000;
 #if TEMPERATURE_OUTPUT_ON == 1
-PWMOutputPin<kOutput2_PinNumber> fet_pin2;// {kPWMPinInverted};
+PWMOutputPin<kOutput15_PinNumber> fet_pin2;// {kPWMPinInverted};
 #else
 PWMOutputPin<-1> fet_pin2;// {kPWMPinInverted};
 #endif
 
 // DO_11: Heated Bed FET
 // Warning, HeatBED is likely NOT a PWM pin, so it'll be binary output (duty cucle >= 50%).
-const int16_t fet_pin3_freq = 100;
+const int16_t fet_pin3_freq = 1000;
 #if TEMPERATURE_OUTPUT_ON == 1
-PWMOutputPin<kOutput11_PinNumber> fet_pin3;// {kPWMPinInverted};
+PWMOutputPin<kOutput16_PinNumber> fet_pin3;// {kPWMPinInverted};
 #else
 PWMOutputPin<-1> fet_pin3;// {kPWMPinInverted};
 #endif
@@ -291,7 +294,7 @@ PWMOutputPin<-1> fet_pin3;// {kPWMPinInverted};
 //#if TEMPERATURE_OUTPUT_ON == 1
 //namespace Motate {
 //    template<>
-//    void PWMOutputPin<kOutput1_PinNumber>::parentTimerType::interrupt() {
+//    void PWMOutputPin<kOutput14_PinNumber>::parentTimerType::interrupt() {
 //        if (!--fet_pin1_sample_counter) {
 //            ADC_Module::startSampling();
 //            fet_pin1_sample_counter = fet_pin1_sample_freq;
@@ -303,7 +306,7 @@ PWMOutputPin<-1> fet_pin3;// {kPWMPinInverted};
 #if TEMPERATURE_OUTPUT_ON == 1
 
 // We're going to register a SysTick event
-const int16_t fet_pin1_sample_freq = 10; // every fet_pin1_sample_freq interrupts, sample
+const int16_t fet_pin1_sample_freq = 100; // every fet_pin1_sample_freq interrupts, sample
 int16_t fet_pin1_sample_counter = fet_pin1_sample_freq;
 SysTickEvent adc_tick_event {[&] {
     if (!--fet_pin1_sample_counter) {
@@ -316,8 +319,8 @@ SysTickEvent adc_tick_event {[&] {
 
 
 struct PID {
-    static constexpr float output_max = 1.0;
-    static constexpr float derivative_contribution = 0.05;
+    static  const float output_max;
+    static  const float derivative_contribution;
 
     float _p_factor;                // the scale for P values
     float _i_factor;                // the scale for I values
@@ -339,7 +342,11 @@ struct PID {
 
     bool _enable;                   // set true to enable this heater
 
-    PID(float P, float I, float D, float min_rise_over_time, float startSetPoint = 0.0) : _p_factor{P/100.0f}, _i_factor{I/100.0f}, _d_factor{D/100.0f}, _set_point{startSetPoint}, _at_set_point{false}, _min_rise_over_time(min_rise_over_time) {};
+    PID(float P, float I, float D, float min_rise_over_time, float startSetPoint = 0.0)
+    : _p_factor{P/100.0f}, _i_factor{I/100.0f}, _d_factor{D/100.0f}
+    , _set_point{startSetPoint}, _at_set_point{false}
+    , _min_rise_over_time(min_rise_over_time), _rise_time_checkpoint(0)
+    , _enable(false){};
 
     float getNewOutput(float input) {
         // If the input is < 0, the sensor failed
@@ -438,10 +445,13 @@ struct PID {
 //    }
 };
 
+const float PID::output_max = 0.5;
+const float PID::derivative_contribution = 0.1;
+
 // NOTICE, the JSON alters incoming values for these!
 // {he1p:9} == 9.0/100.0 here
 
-PID pid1 { 9.0, 0.11, 400.0, TEMP_MIN_RISE_DEGREES_OVER_TIME }; // default values
+PID pid1 { 3.0, 0.72, 300.0, TEMP_MIN_RISE_DEGREES_OVER_TIME }; // default values
 PID pid2 { 7.5, 0.12, 400.0, TEMP_MIN_RISE_DEGREES_OVER_TIME }; // default values
 PID pid3 { 7.5, 0.12, 400.0, TEMP_MIN_BED_RISE_DEGREES_OVER_TIME }; // default values
 Timeout pid_timeout;
@@ -459,7 +469,7 @@ struct HeaterFan {
 
     HeaterFan() {
 #if TEMPERATURE_OUTPUT_ON == 1
-        heater_fan_pin.setFrequency(200000);
+        heater_fan_pin.setFrequency(fet_pin1_freq);
         heater_fan_pin = 0;
 #endif
     }
@@ -490,21 +500,23 @@ void temperature_init()
 {
     // setup heater PWM
     fet_pin1.setFrequency(fet_pin1_freq);
-    fet_pin1.setInterrupts(kInterruptOnOverflow|kInterruptPriorityLowest);
+    fet_pin1.setInterrupts(0/*kInterruptOnOverflow|kInterruptPriorityLowest*/);
 
     fet_pin2.setFrequency(fet_pin2_freq);
     fet_pin3.setFrequency(fet_pin3_freq);
 
 //    fan_pin1 = 0;
-//    fan_pin1.setFrequency(200000);
+//    fan_pin1.setFrequency(fet_pin1_freq);
 //    fan_pin2 = 0;
 //    fan_pin2.setFrequency(50000);
 //    fan_pin3 = 1;
-//    fan_pin3.setFrequency(200000);
+//    fan_pin3.setFrequency(fet_pin1_freq);
 
     // Register the SysTick event (described above)
 #if TEMPERATURE_OUTPUT_ON == 1
-    SysTickTimer.registerEvent(&adc_tick_event);
+    //SysTickTimer.registerEvent(&adc_tick_event);
+    // Run DMA ADC
+    ADC_Module::startSampling();
 #endif
 
     temperature_reset();

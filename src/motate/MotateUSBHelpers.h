@@ -212,7 +212,7 @@ namespace Motate {
 
 
     // Note: I'm adding pragma marks for XCode, since it has trouble parsing the oddly formed constructors.
-#pragma mark USBDescriptorHeader_t
+//#pragma mark USBDescriptorHeader_t
     // Header, used in all of the descriptors
     struct USBDescriptorHeader_t
     {
@@ -233,7 +233,7 @@ namespace Motate {
     /* #                                           # */
     /* ############################################# */
 
-#pragma mark USBDescriptorDevice_t
+//#pragma mark USBDescriptorDevice_t
 
     //  Device
     struct USBDescriptorDevice_t
@@ -304,7 +304,7 @@ namespace Motate {
     } ATTR_PACKED;
 
 
-#pragma mark USBDescriptorDeviceQualifier_t
+//#pragma mark USBDescriptorDeviceQualifier_t
     struct USBDescriptorDeviceQualifier_t
     {
         USBDescriptorHeader_t Header; /* Descriptor header, including type and size. */
@@ -352,7 +352,7 @@ namespace Motate {
     /* #           DEVICE CONFIGURATION            # */
     /* #                                           # */
     /* ############################################# */
-#pragma mark USBDescriptorConfigurationHeader_t
+//#pragma mark USBDescriptorConfigurationHeader_t
 
     struct USBDescriptorConfigurationHeader_t
     {
@@ -399,7 +399,7 @@ namespace Motate {
         {};
     } ATTR_PACKED;
 
-#pragma mark USBDescriptorConfiguration_t
+//#pragma mark USBDescriptorConfiguration_t
     // Note that USBDescriptorConfiguration_t* is also designed to be cast to uint8_t*,
     // so all of the non-static variables for this and all inherited types must be in the order and size
     // defined by the USB spec for configuration and header interfaces.
@@ -589,7 +589,7 @@ namespace Motate {
     /* #             DEVICE INTERFACE              # */
     /* #                                           # */
     /* ############################################# */
-#pragma mark USBDescriptorInterface_t
+//#pragma mark USBDescriptorInterface_t
 
     struct USBDescriptorInterface_t
     {
@@ -635,7 +635,7 @@ namespace Motate {
     } ATTR_PACKED ;
 
 
-#pragma mark USBDescriptorInterfaceAssociation_t
+//#pragma mark USBDescriptorInterfaceAssociation_t
     struct USBDescriptorInterfaceAssociation_t
     {
         USBDescriptorHeader_t Header; /* Descriptor header, including type and size. */
@@ -751,7 +751,7 @@ namespace Motate {
         return tempSize;
     };
 
-#pragma mark USBDescriptorEndpoint_t
+//#pragma mark USBDescriptorEndpoint_t
     struct USBDescriptorEndpoint_t
     {
         USBDescriptorHeader_t Header; /* Descriptor header, including type and size. */
@@ -834,7 +834,7 @@ namespace Motate {
      kEndpointBufferTypeInterrupt
      */
 
-#pragma mark template <uint8_t size> USBDescriptorString_t
+//#pragma mark template <uint8_t size> USBDescriptorString_t
 
     struct USBDescriptorStringHeader_t
     {
@@ -850,7 +850,7 @@ namespace Motate {
         };
     } ATTR_PACKED;
 
-#pragma mark Setup_t
+//#pragma mark Setup_t
     struct Setup_t
     {
         //union {

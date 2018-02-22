@@ -49,15 +49,15 @@ namespace Motate {
     template<> void Timer<0>::_enablePeripheralClock()    { __HAL_RCC_TIM4_CLK_ENABLE();};
     template<> void Timer<0>::interrupt();
 
-    template<> TIM_TypeDef * const  Timer<1>::tc()           { return TIM2; };
-    template<> const IRQn_Type   Timer<1>::tcIRQ()        { return TIM2_IRQn; };
-    template<> void Timer<1>::_enablePeripheralClock()    { __HAL_RCC_TIM2_CLK_ENABLE();};
+    template<> TIM_TypeDef * const  Timer<1>::tc()           { return TIM3; };
+    template<> const IRQn_Type   Timer<1>::tcIRQ()        { return TIM3_IRQn; };
+    template<> void Timer<1>::_enablePeripheralClock()    { __HAL_RCC_TIM3_CLK_ENABLE();};
     template<> void Timer<1>::interrupt();
 
-    template<> TIM_TypeDef * const  Timer<2>::tc()           { return TIM3; };
-    template<> const IRQn_Type   Timer<2>::tcIRQ()        { return TIM3_IRQn; };
-    template<> void Timer<2>::_enablePeripheralClock()    { __HAL_RCC_TIM3_CLK_ENABLE();};
-    template<> void Timer<2>::interrupt();
+    template<> TIM_TypeDef * const  Timer<2>::tc()           { return TIM2; };
+    template<> const IRQn_Type   Timer<2>::tcIRQ()        { return TIM2_IRQn; };
+    template<> void Timer<2>::_enablePeripheralClock()    { __HAL_RCC_TIM2_CLK_ENABLE();};
+    template<> void Timer<2>::interrupt()				  {getInterruptCause();}
 
 
 } // namespace Motate
@@ -86,11 +86,11 @@ extern "C" {
 		__DSB();      // prevent erroneous recall of this handler due to delayed memory write
 	}
 	void TIM2_IRQHandler(){
-		Motate::Timer<1>::interrupt();
+		Motate::Timer<2>::interrupt();
 		__DSB();      // prevent erroneous recall of this handler due to delayed memory write
 		}
 	void TIM3_IRQHandler(){
-		Motate::Timer<2>::interrupt();
+		Motate::Timer<1>::interrupt();
 		__DSB();      // prevent erroneous recall of this handler due to delayed memory write
 		}
 }

@@ -447,6 +447,7 @@ struct Stepper {
     virtual void init() // can be overridden
     {
         this->setDirection(STEP_INITIAL_DIRECTION);
+        this->disable();
     };
 
     virtual void setPowerMode(stPowerMode new_pm)

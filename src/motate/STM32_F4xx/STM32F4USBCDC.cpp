@@ -311,6 +311,7 @@ bool STM32F4USBCDC::RXTransferReady(uint16_t read_)
 bool STM32F4USBCDC::startTXTransfer(char *buffer, const uint16_t length)
 {
 	USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)USBD_Device.pClassData;
+
 	while(hcdc->TxState)
 	{
 

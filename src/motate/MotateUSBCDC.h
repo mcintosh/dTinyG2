@@ -146,7 +146,7 @@ namespace Motate {
         kCDCControlState_RTS = 1<<1, /* Ready to send */
     };
 
-#pragma mark USBCDCDescriptorFunctionalHeader_t
+//#pragma mark USBCDCDescriptorFunctionalHeader_t
     /** CDC class-specific Functional Header Descriptor (LUFA naming conventions).
      *
      *  Type define for a CDC class-specific functional header descriptor. This indicates to the host that the device
@@ -175,7 +175,7 @@ namespace Motate {
         {};
     } ATTR_PACKED;
 
-#pragma mark USBCDCDescriptorFunctionalACM_t
+//#pragma mark USBCDCDescriptorFunctionalACM_t
     /*  CDC class-specific Functional ACM Descriptor (LUFA naming conventions).
      *
      *  Type define for a CDC class-specific functional ACM descriptor. This indicates to the host that the CDC interface
@@ -206,7 +206,7 @@ namespace Motate {
         {};
     } ATTR_PACKED;
 
-#pragma mark USBCDCDescriptorFunctionalUnion_t
+//#pragma mark USBCDCDescriptorFunctionalUnion_t
     /*  CDC class-specific Functional Union Descriptor (LUFA naming conventions).
      *
      *  Type define for a CDC class-specific functional Union descriptor. This indicates to the host that specific
@@ -232,7 +232,7 @@ namespace Motate {
     } ATTR_PACKED;
 
 
-#pragma mark USBCDC
+//#pragma mark USBCDC
 
     // Placeholder for use in end-code
     // IOW: USBDevice<USBCDC> usb;
@@ -242,7 +242,7 @@ namespace Motate {
         static const uint8_t endpoints_used = (uint8_t)3;
     };
 
-#pragma mark USBSerial
+//#pragma mark USBSerial
 
     //Actual implementation of CDC
     template <typename usb_parent_type>
@@ -608,7 +608,7 @@ namespace Motate {
 
     };
 
-#pragma mark USBMixin< usb_parent_type, position, USBCDC >
+//#pragma mark USBMixin< usb_parent_type, position, USBCDC >
     template <typename usb_parent_type, uint8_t position>
     struct USBMixin< usb_parent_type, position, USBCDC > : USBCDC {
 
@@ -647,7 +647,7 @@ namespace Motate {
         bool sendSpecialDescriptorOrConfig(const Setup_t &setup) const { return false; };
     };
 
-#pragma mark USBDefaultDescriptor < USBCDC >
+//#pragma mark USBDefaultDescriptor < USBCDC >
     // The descriptor for CDC has some odd rules, compared to other interfaces, since it's composite interface:
     //  1- If the ONLY interface is a CDC interface, then we explicity say as much in the device descriptor proper
     //  2- If there are any other interfaces (in any position), then we need to specify that we're using an Interface
@@ -681,7 +681,7 @@ namespace Motate {
     };
 
 
-#pragma mark USBConfigMixins< USBCDC, ?, ? >
+//#pragma mark USBConfigMixins< USBCDC, ?, ? >
 
     // Define the CDC ConfigMixins
 

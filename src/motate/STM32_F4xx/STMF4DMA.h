@@ -60,7 +60,7 @@ namespace Motate {
 // PDC peripherals -- if we have a PDC (deduced using PERIPH_PTSR_RXTEN)
 #ifdef HAS_PDC
 
-#pragma mark DMA_PDC implementation
+//#pragma mark DMA_PDC implementation
 
     // DMA_PDC_hardware template - - MUST be specialized
     template<typename periph_t, uint8_t periph_num>
@@ -235,7 +235,7 @@ namespace Motate {
 // Notice that this relies on defines set up in SamCommon.h
 #ifdef HAS_PDC_USART0
 
-#pragma mark DMA_PDC Usart implementation
+//#pragma mark DMA_PDC Usart implementation
 
     template<uint8_t uartPeripheralNumber>
     struct DMA_PDC_hardware<Usart*, uartPeripheralNumber>
@@ -293,7 +293,7 @@ namespace Motate {
 // Notice that this relies on defines set up in SamCommon.h
 #ifdef HAS_PDC_UART0
 
-#pragma mark DMA_PDC Usart implementation
+//#pragma mark DMA_PDC Usart implementation
 
     template<uint8_t uartPeripheralNumber>
     struct DMA_PDC_hardware<Uart*, uartPeripheralNumber> {
@@ -765,7 +765,7 @@ namespace Motate {
     // Notice that this relies on defines set up in SamCommon.h
 #ifdef HAS_USART0
 
-#pragma mark DMA_XDMAC Usart implementation
+//#pragma mark DMA_XDMAC Usart implementation
 
     template<uint8_t uartPeripheralNumber>
     struct DMA_XDMAC_hardware<Usart*, uartPeripheralNumber> {
@@ -880,7 +880,7 @@ namespace Motate {
     // Notice that this relies on defines set up in SamCommon.h
 #ifdef HAS_UART0
 
-#pragma mark DMA_XDMAC Usart implementation
+//#pragma mark DMA_XDMAC Usart implementation
 
     template<uint8_t uartPeripheralNumber>
     struct DMA_XDMAC_hardware<Uart*, uartPeripheralNumber>
@@ -1000,7 +1000,7 @@ namespace Motate {
     // We're deducing if there's a UART and it has a PDC
     // Notice that this relies on defines set up in SamCommon.h
 #if defined(HAS_SPI0) && !defined(CAN_SPI_PDC_DMA)
-#pragma mark DMA_XDMAC SPI implementation
+//#pragma mark DMA_XDMAC SPI implementation
 
     template<uint8_t spiPeripheralNumber>
     struct DMA_XDMAC_hardware<Spi*, spiPeripheralNumber>
@@ -1108,7 +1108,7 @@ namespace Motate {
     // We're deducing if there's a UART and it has a PDC
     // Notice that this relies on defines set up in SamCommon.h
 #if defined(PWM1)
-#pragma mark DMA_XDMAC PWM implementation
+//#pragma mark DMA_XDMAC PWM implementation
 
     template<uint8_t timerNum>
     struct DMA_XDMAC_hardware<Pwm*, timerNum>

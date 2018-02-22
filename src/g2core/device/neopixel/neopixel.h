@@ -33,7 +33,7 @@
 #include "MotateTimers.h"
 #include <type_traits>
 
-#pragma mark Color objects
+//#pragma mark Color objects
 
 // Bonus, color objects
 
@@ -335,7 +335,7 @@ struct RGB_Color_t : NeopixelColorTag {
 };
 
 
-#pragma mark NeoPixel object and supporting enums
+//#pragma mark NeoPixel object and supporting enums
 
 enum class NeoPixelOrder : uint32_t {
     // RGB NeoPixel permutations; white offset == red offset

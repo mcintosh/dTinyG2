@@ -36,6 +36,8 @@
 
 // Machine configuration settings
 
+#define JUNCTION_ACCELERATION   100000      // centripetal acceleration around corners
+
 #define JUNCTION_INTEGRATION_TIME   0.75                    // cornering - between 0.10 and 2.00 (higher is faster)
 #define CHORDAL_TOLERANCE           0.01                    // chordal tolerance for arcs (in mm)
 
@@ -55,24 +57,26 @@
 // Communications and reporting settings
 
 #define USB_SERIAL_PORTS_EXPOSED	1						// 1=single endpoint usb, 2=dual endpoint usb
-#define COMM_MODE                   JSON_MODE               // one of: TEXT_MODE, JSON_MODE
+#define COMM_MODE                   JSON_MODE               // one of: TEXT_MODE, JSON_MODE, MARLIN_COMM_MODE
 #define XIO_ENABLE_FLOW_CONTROL FLOW_CONTROL_RTS            // FLOW_CONTROL_OFF, FLOW_CONTROL_RTS
 
-#define TEXT_VERBOSITY              TV_VERBOSE              // one of: TV_SILENT, TV_VERBOSE
-#define JSON_VERBOSITY              JV_MESSAGES             // one of: JV_SILENT, JV_FOOTER, JV_CONFIGS, JV_MESSAGES, JV_LINENUM, JV_VERBOSE
-#define QUEUE_REPORT_VERBOSITY      QR_OFF                  // one of: QR_OFF, QR_SINGLE, QR_TRIPLE
+#define MARLIN_COMPAT_ENABLED             false                    // enable marlin compatibility mode
+#define COMM_MODE                         JSON_MODE               // one of: TEXT_MODE, JSON_MODE
+#define XIO_ENABLE_FLOW_CONTROL           FLOW_CONTROL_RTS        // FLOW_CONTROL_OFF, FLOW_CONTROL_RTS
+#define XIO_UART_MUTES_WHEN_USB_CONNECTED 1                       // Mute the UART when USB connects
 
-#define STATUS_REPORT_VERBOSITY     SR_FILTERED             // one of: SR_OFF, SR_FILTERED, SR_VERBOSE
+#define TEXT_VERBOSITY                    TV_VERBOSE              // one of: TV_SILENT, TV_VERBOSE
+#define JSON_VERBOSITY                    JV_LINENUM              // one of: JV_SILENT, JV_FOOTER, JV_CONFIGS, JV_MESSAGES, JV_LINENUM, JV_VERBOSE
+#define QUEUE_REPORT_VERBOSITY            QR_OFF                  // one of: QR_OFF, QR_SINGLE, QR_TRIPLE
 
-#define STATUS_REPORT_MIN_MS        100                     // milliseconds - enforces a viable minimum
-#define STATUS_REPORT_INTERVAL_MS   250                     // milliseconds - set $SV=0 to disable
+#define STATUS_REPORT_VERBOSITY           SR_FILTERED             // one of: SR_OFF, SR_FILTERED, SR_VERBOSE
+#define STATUS_REPORT_MIN_MS              100                     // milliseconds - enforces a viable minimum
+#define STATUS_REPORT_INTERVAL_MS         250                     // milliseconds - set $SV=0 to disable
 
-//#define STATUS_REPORT_DEFAULTS "line","posx","posy","posz","posa","feed","vel","unit","coor","dist","admo","frmo","momo","stat"
-//#define STATUS_REPORT_DEFAULTS "line","posx","posy","posz","feed","vel","momo","stat"
-
-// Alternate SRs that report in drawable units
-#define STATUS_REPORT_DEFAULTS "line","vel","mpox","mpoy","mpoz","mpoa","coor","ofsa","ofsx","ofsy","ofsz","dist","unit","stat","homz","homy","homx","momo"
-//#define STATUS_REPORT_DEFAULTS "_ts1","_cs1","_es1","_xs1","_fe1","line","posx","posy","posz","vel","stat"
+// Defaults for 3DP
+#define STATUS_REPORT_DEFAULTS            \
+    "line","posx","posy","posz","posa","vel","he1t","he1st","he1at","he1op","feed","vel","unit","path","stat", \
+    "he2t","he2st","he2at","he2op","he3t","he3st","he3at","he3op"
 
 // Gcode startup defaults
 #define GCODE_DEFAULT_UNITS         MILLIMETERS             // MILLIMETERS or INCHES
@@ -86,11 +90,11 @@
 #define MOTOR_POWER_MODE            MOTOR_POWERED_IN_CYCLE  // default motor power mode (see cmMotorPowerMode in stepper.h)
 #define MOTOR_POWER_TIMEOUT         2.00                    // motor power timeout in seconds
 
-#define M1_MOTOR_MAP                AXIS_Z                  // 1ma
+#define M1_MOTOR_MAP                AXIS_Y                  // 1ma
 #define M1_STEP_ANGLE               1.8                     // 1sa
 #define M1_TRAVEL_PER_REV           5                   // 1tr
 #define M1_MICROSTEPS               32                       // 1mi  1,2,4,8,16,32
-#define M1_POLARITY                 0                       // 1po  0=normal, 1=reversed
+#define M1_POLARITY                 1                       // 1po  0=normal, 1=reversed
 #define M1_POWER_MODE               MOTOR_POWER_MODE        // 1pm  TRUE=low power idle enabled
 #define M1_POWER_LEVEL              0.500
 
@@ -98,7 +102,7 @@
 #define M2_STEP_ANGLE               1.8
 #define M2_TRAVEL_PER_REV           5
 #define M2_MICROSTEPS               32
-#define M2_POLARITY                 0
+#define M2_POLARITY                 1
 #define M2_POWER_MODE               MOTOR_POWER_MODE
 #define M2_POWER_LEVEL              0.500
 
@@ -108,53 +112,84 @@
 #define M3_MICROSTEPS               32
 #define M3_POLARITY                 0
 #define M3_POWER_MODE               MOTOR_POWER_MODE
-#define M3_POWER_LEVEL              0.750
+#define M3_POWER_LEVEL              0.500
+
+#define M4_MOTOR_MAP                AXIS_Z
+#define M4_STEP_ANGLE               1.8
+#define M4_TRAVEL_PER_REV           5
+#define M4_MICROSTEPS               32
+#define M4_POLARITY                 1
+#define M4_POWER_MODE               MOTOR_POWER_MODE
+#define M4_POWER_LEVEL              0.500
+
+#define M5_MOTOR_MAP                AXIS_A
+#define M5_STEP_ANGLE               1.8
+#define M5_TRAVEL_PER_REV           360
+#define M5_MICROSTEPS               16
+#define M5_POLARITY                 0
+#define M5_POWER_MODE               MOTOR_POWER_MODE
+#define M5_POWER_LEVEL              0.500
 
 // *** axis settings **********************************************************************************
 
-#define JERK_MAX                    1000
+#define JERK_MAX                    300
 
 #define X_AXIS_MODE                 AXIS_STANDARD           // xam  see canonical_machine.h cmAxisMode for valid values
-#define X_VELOCITY_MAX              5000                   // xvm  G0 max velocity in mm/min
+#define X_VELOCITY_MAX              3000                   // xvm  G0 max velocity in mm/min
 #define X_FEEDRATE_MAX              X_VELOCITY_MAX          // xfr  G1 max feed rate in mm/min
 #define X_TRAVEL_MIN                0                       // xtn  minimum travel for soft limits
 #define X_TRAVEL_MAX                420                     // xtm  travel between switches or crashes
 #define X_JERK_MAX                  JERK_MAX                // xjm  jerk * 1,000,000
-#define X_JERK_HIGH_SPEED           1000                   // xjh
+#define X_JERK_HIGH_SPEED           JERK_MAX                     // xjh
 #define X_HOMING_INPUT              1                       // xhi  input used for homing or 0 to disable
 #define X_HOMING_DIRECTION          0                       // xhd  0=search moves negative, 1= search moves positive
-#define X_SEARCH_VELOCITY           3000                    // xsv  minus means move to minimum switch
+#define X_SEARCH_VELOCITY           1000                    // xsv  minus means move to minimum switch
 #define X_LATCH_VELOCITY            100                     // xlv  mm/min
 #define X_LATCH_BACKOFF             4                       // xlb  mm
 #define X_ZERO_BACKOFF              2                       // xzb  mm
 
 #define Y_AXIS_MODE                 AXIS_STANDARD
-#define Y_VELOCITY_MAX              5000
+#define Y_VELOCITY_MAX              3000
 #define Y_FEEDRATE_MAX              Y_VELOCITY_MAX
 #define Y_TRAVEL_MIN                0
 #define Y_TRAVEL_MAX                420
 #define Y_JERK_MAX                  JERK_MAX
-#define Y_JERK_HIGH_SPEED           1000
-#define Y_HOMING_INPUT              3
+#define Y_JERK_HIGH_SPEED           JERK_MAX
+#define Y_HOMING_INPUT              7
 #define Y_HOMING_DIRECTION          0
-#define Y_SEARCH_VELOCITY           3000
+#define Y_SEARCH_VELOCITY           1000
 #define Y_LATCH_VELOCITY            100
 #define Y_LATCH_BACKOFF             4
 #define Y_ZERO_BACKOFF              2
 
 #define Z_AXIS_MODE                 AXIS_STANDARD
-#define Z_VELOCITY_MAX              1200
+#define Z_VELOCITY_MAX              2000
 #define Z_FEEDRATE_MAX              Z_VELOCITY_MAX
 #define Z_TRAVEL_MAX                0
 #define Z_TRAVEL_MIN                -95
 #define Z_JERK_MAX                  500
-#define Z_JERK_HIGH_SPEED           1000
+#define Z_JERK_HIGH_SPEED           800
 #define Z_HOMING_INPUT              6
 #define Z_HOMING_DIRECTION          1
 #define Z_SEARCH_VELOCITY           (Z_VELOCITY_MAX * 0.66666)
 #define Z_LATCH_VELOCITY            25
 #define Z_LATCH_BACKOFF             4
 #define Z_ZERO_BACKOFF              2
+
+#define A_AXIS_MODE                       AXIS_RADIUS
+#define A_RADIUS                          4.28394
+#define A_VELOCITY_MAX                    77760.0                 // G0 rate ~120 mm/s, 2,400 mm/min
+#define A_FEEDRATE_MAX                    16050                   // ~10 mm/s
+#define A_TRAVEL_MIN                      0
+#define A_TRAVEL_MAX                      10
+#define A_JERK_MAX                        162000                  // 250 million mm/min^3 = 324000
+#define A_HOMING_INPUT                    0
+#define A_HOMING_DIRECTION                0
+#define A_SEARCH_VELOCITY                 2000
+#define A_LATCH_VELOCITY                  2000
+#define A_LATCH_BACKOFF                   5
+#define A_ZERO_BACKOFF                    2
+#define A_JERK_HIGH_SPEED                 A_JERK_MAX
 
 //*** Input / output settings ***
 /*
@@ -175,7 +210,7 @@
     INPUT_FUNCTION_PANIC
 */
 // Xmin on v9 board
-#define DI1_MODE                    NORMALLY_CLOSED
+#define DI1_MODE                    IO_ACTIVE_LOW
 //#define DI1_ACTION                  INPUT_ACTION_STOP
 #define DI1_ACTION                  INPUT_ACTION_NONE
 #define DI1_FUNCTION                INPUT_FUNCTION_LIMIT
@@ -204,15 +239,15 @@
 #define DI5_FUNCTION                INPUT_FUNCTION_PROBE
 
 // Zmax
-#define DI6_MODE                    IO_MODE_DISABLED
+#define DI6_MODE                    IO_ACTIVE_LOW
 //#define DI6_ACTION                  INPUT_ACTION_STOP
 #define DI6_ACTION                  INPUT_ACTION_NONE
-#define DI6_FUNCTION                INPUT_FUNCTION_LIMIT
+#define DI6_FUNCTION                INPUT_FUNCTION_PROBE
 
 // Amin
-#define DI7_MODE                    IO_MODE_DISABLED
+#define DI7_MODE                    IO_ACTIVE_LOW
 #define DI7_ACTION                  INPUT_ACTION_NONE
-#define DI7_FUNCTION                INPUT_FUNCTION_NONE
+#define DI7_FUNCTION                INPUT_FUNCTION_LIMIT
 
 // Amax
 #define DI8_MODE                    IO_MODE_DISABLED
@@ -223,3 +258,28 @@
 #define DI9_MODE                    IO_MODE_DISABLED
 #define DI9_ACTION                  INPUT_ACTION_NONE
 #define DI9_FUNCTION                INPUT_FUNCTION_NONE
+
+
+/*** Extruders / Heaters ***/
+
+#define TEMP_MIN_BED_RISE_DEGREES_OVER_TIME 0.5
+
+#define MIN_FAN_VALUE                     0.4                     // (he1fm) at MIN_FAN_TEMP the fan comes on at this spped (0.0-1.0)
+#define MAX_FAN_VALUE                     0.75                    // (he1fp) at MAX_FAN_TEMP the fan is at this spped (0.0-1.0)
+#define MIN_FAN_TEMP                      50.0                    // (he1fl) at this temp the fan starts to ramp up linearly
+#define MAX_FAN_TEMP                      100.0                   // (he1fh) at this temperature the fan is at "full speed" (MAX_FAN_VALUE)
+
+#define H1_DEFAULT_ENABLE                 true
+#define H1_DEFAULT_P                      7.0
+#define H1_DEFAULT_I                      0.05
+#define H1_DEFAULT_D                      150.0
+
+#define H2_DEFAULT_ENABLE                 false
+#define H2_DEFAULT_P                      7.0
+#define H2_DEFAULT_I                      0.05
+#define H2_DEFAULT_D                      150.0
+
+#define H3_DEFAULT_ENABLE                 false
+#define H3_DEFAULT_P                      9.0
+#define H3_DEFAULT_I                      0.12
+#define H3_DEFAULT_D                      400.0

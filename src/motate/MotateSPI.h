@@ -145,7 +145,7 @@ namespace Motate {
 namespace Motate {
 
 
-#pragma mark SPIBusDeviceBase
+
     /**************************************************
      *
      * SPI Bus Device Base, a base class for a member of an SPI Bus
@@ -211,7 +211,7 @@ namespace Motate {
 
     // attach device to spi bus
 
-#pragma mark SPIBus
+
     /**************************************************
      *
      * SPI Bus with arbitration
@@ -429,7 +429,7 @@ namespace Motate {
         };
 
 
-#pragma mark SPIBusDevice (inside SPIBus)
+
         /**************************************************
          *
          * SPI Bus Device, a member of an SPI Bus.

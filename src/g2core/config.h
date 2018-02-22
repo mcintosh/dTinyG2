@@ -171,8 +171,8 @@
 // Sizing and footprints                // chose one based on # of elements in cfgArray
 //typedef uint8_t index_t;              // use this if there are < 256 indexed objects
 typedef uint32_t index_t;               // use this if there are > 255 indexed objects
-										// changed by d.d. report.cpp uses sizeof copy to float
-										// report.cpp:243: memcpy(sr.status_report_list, status_report_list, sizeof(status_report_list));
+					// changed by d.d. report.cpp uses sizeof copy to float
+					// report.cpp:243: memcpy(sr.status_report_list, status_report_list, sizeof(status_report_list));
 
                                         // defines allocated from stack (not-pre-allocated)
 #define NV_FORMAT_LEN 128               // print formatting string max length

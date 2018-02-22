@@ -38,6 +38,7 @@
 
 #include <functional>
 #include <type_traits>
+#include <string.h>
 
 namespace Motate {
 // Numbering is arbitrary:
@@ -46,6 +47,8 @@ enum PinMode : PinMode_t {
 			kOutput         = 1, // Output PP
 			kInput          = 2,
 			kOutputOD       = 3,	// Output OD
+			kAnalog         = 4,	// Analog
+			kOutputPWM      = 5, // Output PP
 };
 
 // Numbering is arbitrary, but bit unique for bitwise operations (unlike other architectures):
@@ -131,7 +134,7 @@ struct _pinChangeInterrupt {
 
 typedef uint32_t uintPort_t;
 
-#pragma mark PortHardware
+//#pragma mark PortHardware
 /**************************************************
  *
  * HARDWARE LAYER: PortHardware
@@ -141,6 +144,7 @@ typedef uint32_t uintPort_t;
 template <unsigned char portLetter>
 struct PortHardware {
 	static const uint8_t letter = portLetter;
+	static uint32_t _inverted;
 
 	// The constexpr functions we can define here, and get really great optimization.
 	// These switch statements are handled by the compiler, not at runtime.
@@ -243,6 +247,16 @@ struct PortHardware {
 			GPIO_InitStructure.Mode      = GPIO_MODE_INPUT;
 			HAL_GPIO_Init(rawPort(), &GPIO_InitStructure);
 			break;
+		case kAnalog:
+			GPIO_InitStructure.Mode      = GPIO_MODE_ANALOG;
+			HAL_GPIO_Init(rawPort(), &GPIO_InitStructure);
+			break;
+		case kOutputPWM:
+			GPIO_InitStructure.Mode      = GPIO_MODE_AF_PP;
+			GPIO_InitStructure.Speed     = GPIO_SPEED_FREQ_VERY_HIGH;
+			GPIO_InitStructure.Alternate = GPIO_AF1_TIM2;
+			HAL_GPIO_Init(rawPort(), &GPIO_InitStructure);
+			break;
 		default:
 			break;
 		}
@@ -270,7 +284,10 @@ struct PortHardware {
 			}
 		}
 
-
+		if(kPWMPinInverted & options)
+		{
+			_inverted |= mask;
+		}
 		if (kStartHigh & options)
 		{
 			set(mask);
@@ -297,10 +314,16 @@ struct PortHardware {
 		return 0;
 	};
 	void set(const uintPort_t mask) {
-		rawPort()->BSRR = mask;
+		if(_inverted & mask)
+			rawPort()->BSRR = (uint32_t)(mask << 16) ;
+		else
+			rawPort()->BSRR = mask;
 	};
 	void clear(const uintPort_t mask) {
-		rawPort()->BSRR = (uint32_t)mask << 16 ;
+		if(_inverted & mask)
+			rawPort()->BSRR = mask;
+		else
+			rawPort()->BSRR = (uint32_t)(mask << 16) ;
 	};
 	void toggle(const uintPort_t mask) {
 		rawPort()->ODR ^= mask;
@@ -406,8 +429,8 @@ struct PortHardware {
 #define ___MAKE_MOTATE_PIN(pinNum, registerChar, registerPin)
 
 #define _MAKE_MOTATE_PIN(pinNum, registerChar, registerPin) \
-		template<> \
-		struct Pin<pinNum> : RealPin<registerChar, registerPin> { \
+template<> \
+struct Pin<pinNum> : RealPin<registerChar, registerPin> { \
 	static const int16_t number = pinNum; \
 	static const uint8_t portLetter = (uint8_t) registerChar; \
 	Pin() : RealPin<registerChar, registerPin>() {}; \
@@ -422,7 +445,7 @@ struct ReversePinLookup<registerChar, registerPin> : Pin<pinNum> { \
 
 
 
-#pragma mark IRQPin support
+//#pragma mark IRQPin support
 /**************************************************
  *
  * PIN CHANGE INTERRUPT SUPPORT: IsIRQPin / MOTATE_PIN_INTERRUPT
@@ -439,74 +462,205 @@ constexpr const bool IsIRQPin() { return !Pin<pinNum>::isNull(); }; // Basically
 
 
 
-#pragma mark ADC_Module/ACD_Pin (Sam3x)
+//#pragma mark ADC_Module/ACD_Pin (Sam3x)
 /**************************************************
  *
  * PIN CHANGE INTERRUPT SUPPORT: IsIRQPin / MOTATE_PIN_INTERRUPT
  *
  **************************************************/
+// Internal ADC object, and a parent of the ADCPin objects.
+    // Handles: Setting options for the ADC module as a whole,
+    //          and initializing the ADC module once. Initialized
+    struct ADC_Module {
+        static const uint32_t default_adc_clock_frequency = 20000000;
+        static const uint32_t default_adc_startup_time = 12;
+        static const uint32_t peripheralId() { return (uint32_t)1; }
+        static ADC_HandleTypeDef    AdcHandle;
+        static uint32_t	uhADCxConvertedValue[16];
+        static uint8_t	rankToChannel[16];
+        static uint32_t numInitialized;
 
-template<pin_number pinNum>
-struct ADCPinParent {
-	static const uint32_t adcMask = 0;
-	static const uint32_t adcNumber = 0;
-	static const uint16_t getTop() { return 4095; };
-};
 
-// Some pins are ADC pins.
-template<pin_number n>
-struct ADCPin : Pin<-1> {
-	ADCPin() : Pin<-1>() {};
-	ADCPin(const PinOptions_t options) : Pin<-1>() {};
+        static bool inited_;
 
-	uint32_t getRaw() {
-		return 0;
-	};
-	uint32_t getValue() {
-		return 0;
-	};
-	operator int16_t() {
-		return getValue();
-	};
-	operator float() {
-		return 0.0;
-	};
-	static const uint16_t getTop() { return 4095; };
+        void init(const uint32_t adc_clock_frequency, const uint8_t adc_startuptime) {
+            if (!inited_) {
+            	memset(uhADCxConvertedValue, 0, sizeof(uhADCxConvertedValue));
+            	memset(rankToChannel, 0xFF, sizeof(rankToChannel));
+            }
 
-	static const bool is_real = false;
-	void setInterrupts(const uint32_t interrupts) {};
-	static void interrupt() __attribute__ (( weak )); // Allow setting an interrupt on a invalid ADC pin -- will never be called
-};
+            inited_ = true;
+            numInitialized++;
 
-template<int16_t adcNum>
-struct ReverseADCPin : ADCPin<-1> {
-	ReverseADCPin() : ADCPin<-1>() {};
-	ReverseADCPin(const PinOptions_t options) : ADCPin<-1>() {};
-};
+            AdcHandle.Instance          		 = ADC1;
+            AdcHandle.Init.ClockPrescaler        = ADC_CLOCKPRESCALER_PCLK_DIV8;
+            AdcHandle.Init.Resolution            = ADC_RESOLUTION12b;
+            AdcHandle.Init.ScanConvMode          = ENABLE;                       /* Sequencer disabled (ADC conversion on only 1 channel: channel set on rank 1) */
+            AdcHandle.Init.ContinuousConvMode    = ENABLE;                        /* Continuous mode disabled to have only 1 conversion at each conversion trig */
+            AdcHandle.Init.DiscontinuousConvMode = DISABLE;                       /* Parameter discarded because sequencer is disabled */
+            AdcHandle.Init.NbrOfDiscConversion   = 0;
+            AdcHandle.Init.ExternalTrigConvEdge  = ADC_EXTERNALTRIGCONVEDGE_NONE;        /* Conversion start trigged at each external event */
+            AdcHandle.Init.ExternalTrigConv      = ADC_EXTERNALTRIGCONV_T1_CC1;
+            AdcHandle.Init.DataAlign             = ADC_DATAALIGN_RIGHT;
+            AdcHandle.Init.NbrOfConversion       = numInitialized;
+            AdcHandle.Init.DMAContinuousRequests = ENABLE;
+            AdcHandle.Init.EOCSelection          = DISABLE;
+
+            if (HAL_ADC_Init(&AdcHandle) != HAL_OK)
+            {
+              /* ADC initialization Error */
+              while(1){};//Error_Handler();
+            }
+
+        };
+
+        ADC_Module() {
+            init(default_adc_clock_frequency, default_adc_startup_time);
+        };
+
+        static void startSampling() {
+			  /*##-3- Start the conversion process #######################################*/
+			  /* Note: Considering IT occurring after each number of ADC conversions      */
+			  /*       (IT by DMA end of transfer), select sampling time and ADC clock    */
+			  /*       with sufficient duration to not create an overhead situation in    */
+			  /*        IRQHandler. */
+			  if(HAL_ADC_Start_DMA(&AdcHandle, (uint32_t*)&uhADCxConvertedValue, numInitialized) != HAL_OK)
+			  {
+			    /* Start Conversation Error */
+				  while(1);//Error_Handler();
+			  }
+        };
+
+        static void startFreeRunning() {
+            //ADC->ADC_MR |= ADC_MR_FREERUN_ON;
+        };
+    };
+
+    template<pin_number pinNum>
+    struct ADCPinParent {
+        static const uint32_t adcMask = 0;
+        static const uint32_t adcNumber = 0;
+        static const uint16_t getTop() { return 4095; };
+    };
+
+    template<pin_number pinNum>
+    struct ADCPin : ADCPinParent<pinNum>, Pin<pinNum>, ADC_Module
+    {
+        using ADCPinParent<pinNum>::adcMask;
+        using ADCPinParent<pinNum>::adcNumber;
+        using ADCPinParent<pinNum>::getTop;
+        using ADC_Module::numInitialized;
+
+        ADCPin() : ADCPinParent<pinNum>(), Pin<pinNum>(kAnalog), ADC_Module() { init(); };
+        ADCPin(const PinOptions_t options) : ADCPinParent<pinNum>(), Pin<pinNum>(kAnalog), ADC_Module() { init(options); };
+
+        void init(const PinOptions_t options = kNormal) {
+            /* Enable the pin */
+        	Pin<pinNum>::init(kAnalog, options);
+        };
+        uint32_t getRaw() {
+        	if(rankToChannel[adcNumber] < numInitialized)
+        		return uhADCxConvertedValue[rankToChannel[adcNumber]];
+        	else
+        		return 0;
+        };
+        uint32_t getValue() {
+            //if ((ADC->ADC_CHSR & adcMask) != adcMask) {
+            //    ADC->ADC_CR = ADC_CR_START; /* start the sample */
+            //    while ((ADC->ADC_ISR & ADC_ISR_DRDY) != ADC_ISR_DRDY) {;} /* Wait... */
+            //}
+            return getRaw();
+        };
+        operator int16_t() {
+            return getValue();
+        };
+        operator float() {
+            return (float)getValue() / getTop();
+        };
+        static const bool is_real = true;
+        void setInterrupts(const uint32_t interrupts) {
+        	ADC_ChannelConfTypeDef sConfig;
+
+            if (interrupts != kPinInterruptsOff)
+            {
+                /* Set interrupt priority */
+                if (interrupts & kPinInterruptPriorityMask) {
+                    if (interrupts & kPinInterruptPriorityHighest) {
+                        NVIC_SetPriority(DMA2_Stream0_IRQn, 0);
+                    }
+                    else if (interrupts & kPinInterruptPriorityHigh) {
+                        NVIC_SetPriority(DMA2_Stream0_IRQn, 3);
+                    }
+                    else if (interrupts & kPinInterruptPriorityMedium) {
+                        NVIC_SetPriority(DMA2_Stream0_IRQn, 7);
+                    }
+                    else if (interrupts & kPinInterruptPriorityLow) {
+                        NVIC_SetPriority(DMA2_Stream0_IRQn, 11);
+                    }
+                    else if (interrupts & kPinInterruptPriorityLowest) {
+                        NVIC_SetPriority(DMA2_Stream0_IRQn, 15);
+                    }
+                }
+                /* Enable the IRQ */
+                NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+
+                rankToChannel[adcNumber] = numInitialized-1;
+				sConfig.Channel      = adcNumber;
+				sConfig.Rank         = numInitialized;
+				sConfig.SamplingTime = ADC_SAMPLETIME_56CYCLES;
+				sConfig.Offset       = 0;
+				if (HAL_ADC_ConfigChannel(&AdcHandle, &sConfig) != HAL_OK)
+				{
+					/* Channel Configuration Error */
+					while(1);//Error_Handler();
+				}
+
+
+
+
+            } else {
+                /* Disable the pin */
+                //ADC->ADC_CHDR = adcMask;
+                /* Disable the interrupt */
+                //ADC->ADC_IDR = adcMask;
+                /* Disable the interrupt - if all channels are disabled */
+                //if (ADC->ADC_CHSR == 0) {
+                //    NVIC_DisableIRQ(ADC_IRQn);
+                //}
+            }
+        };
+        static void interrupt();
+    };
+
+    template<int16_t adcNum>
+    struct ReverseADCPin : ADCPin<-1> {
+        ReverseADCPin() : ADCPin<-1>() {};
+        ReverseADCPin(const PinOptions_t options) : ADCPin<-1>() {};
+    };
 
 #define _MAKE_MOTATE_ADC_PIN(registerChar, registerPin, adcNum) \
-		template<> \
-		struct ADCPinParent< ReversePinLookup<registerChar, registerPin>::number > { \
-	static const uint32_t adcMask = 1 << adcNum; \
-	static const uint32_t adcNumber = adcNum; \
-	static const uint16_t getTop() { return 4095; }; \
-}; \
-template<> \
-struct ReverseADCPin<adcNum> : ADCPin<ReversePinLookup<registerChar, registerPin>::number> { \
-	ReverseADCPin() : ADCPin<ReversePinLookup<registerChar, registerPin>::number>() {}; \
-	ReverseADCPin(const PinOptions_t options) : ADCPin<ReversePinLookup<registerChar, registerPin>::number>(options) {}; \
-};
+    template<> \
+    struct ADCPinParent< ReversePinLookup<registerChar, registerPin>::number > { \
+        static const uint32_t adcMask = 1 << adcNum; \
+        static const uint32_t adcNumber = adcNum; \
+        static const uint16_t getTop() { return 4095; }; \
+    }; \
+    template<> \
+    struct ReverseADCPin<adcNum> : ADCPin<ReversePinLookup<registerChar, registerPin>::number> { \
+        ReverseADCPin() : ADCPin<ReversePinLookup<registerChar, registerPin>::number>() {}; \
+        ReverseADCPin(const PinOptions_t options) : ADCPin<ReversePinLookup<registerChar, registerPin>::number>(options) {}; \
+    };
 
-template<int16_t pinNum>
-constexpr const bool IsADCPin() { return ADCPin<pinNum>::is_real; };
+    template<int16_t pinNum>
+    constexpr const bool IsADCPin() { return ADCPin<pinNum>::is_real; };
 
-template<uint8_t portChar, int16_t portPin>
-using LookupADCPin = ADCPin< ReversePinLookup<portChar, portPin>::number >;
+    template<uint8_t portChar, int16_t portPin>
+    using LookupADCPin = ADCPin< ReversePinLookup<portChar, portPin>::number >;
 
-template<int16_t adcNum>
-using LookupADCPinByADC = ADCPin< ReverseADCPin< adcNum >::number >;
+    template<int16_t adcNum>
+    using LookupADCPinByADC = ADCPin< ReverseADCPin< adcNum >::number >;
 
-#pragma mark PWMOutputPin support
+//#pragma mark PWMOutputPin support
 /**************************************************
  *
  * PWM ("fake" analog) output pin support: _MAKE_MOTATE_PWM_PIN
@@ -515,7 +669,7 @@ using LookupADCPinByADC = ADCPin< ReverseADCPin< adcNum >::number >;
 
 #define _MAKE_MOTATE_PWM_PIN(registerChar, registerPin, timerOrPWM, invertedByDefault) \
 		template<> \
-		struct AvailablePWMOutputPin< ReversePinLookup<registerChar, registerPin>::number > : RealPWMOutputPin< ReversePinLookup<registerChar, registerPin>::number, timerOrPWM > { \
+		struct AvailablePWMOutputPin< ReversePinLookup<registerChar, registerPin>::number > : RealPWMOutputPin< ReversePinLookup<registerChar, registerPin>::number, timerOrPWM> { \
 	typedef timerOrPWM parentTimerType; \
 	static const pin_number pinNum = ReversePinLookup<registerChar, registerPin>::number; \
 	AvailablePWMOutputPin() : RealPWMOutputPin<pinNum, timerOrPWM>(kOutput) { pwmpin_init(invertedByDefault ? kPWMOnInverted : kPWMOn);}; \
@@ -528,7 +682,7 @@ using LookupADCPinByADC = ADCPin< ReverseADCPin< adcNum >::number >;
 };
 
 
-#pragma mark SPI Pins support
+//#pragma mark SPI Pins support
 /**************************************************
  *
  * SPI PIN METADATA and wiring: specializes SPIChipSelectPin / SPIMISOPin / SPIMOSIPin / SPISCKPin
@@ -579,7 +733,7 @@ using LookupADCPinByADC = ADCPin< ReverseADCPin< adcNum >::number >;
 };
 
 
-#pragma mark UART / USART Pin support
+//#pragma mark UART / USART Pin support
 /**************************************************
  *
  * UART/USART PIN METADATA and wiring: specializes UARTTxPin / UARTRxPin / UARTRTSPin / UARTCTSPin
@@ -626,7 +780,7 @@ using LookupADCPinByADC = ADCPin< ReverseADCPin< adcNum >::number >;
 		static const bool is_real = true;\
 };
 
-#pragma mark ClockOutputPin
+//#pragma mark ClockOutputPin
 /**************************************************
  *
  * Clock Output PIN METADATA and wiring: CLKOutPin

@@ -26,7 +26,7 @@
  * OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "board_stepper.h"
+#include "../dStepko/board_stepper.h"
 
 // These are identical to board_stepper.h, except for the word "extern"
 StepDirStepper<Motate::kSocket1_StepPinNumber,

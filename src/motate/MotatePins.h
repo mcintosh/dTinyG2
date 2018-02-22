@@ -91,7 +91,6 @@ namespace Motate {
     typedef const int16_t pin_number;
 
 
-#pragma mark Pin / ReversePinLookup
     /**************************************************
      *
      * BASIC PINS: Pin / ReversePinLookup
@@ -139,7 +138,7 @@ namespace Motate {
 
 } // namespace Motate
 
-#pragma mark Processor-specific includes
+
 /**************************************************
  *
  * PROCESSOR INCLUDES
@@ -181,7 +180,7 @@ namespace Motate {
 
 namespace Motate {
 
-#pragma mark RealPin
+
     /**************************************************
      *
      * BASIC PINS: RealPin
@@ -212,7 +211,7 @@ namespace Motate {
             setOptions(options, fromConstructor);
         };
         void setMode(const PinMode type, const bool fromConstructor=false) {
-            port.setModes(type, mask);
+        	port.setModes(type, mask);
         };
         PinMode getMode() {
             return port.getMode();
@@ -255,7 +254,7 @@ namespace Motate {
     };
 
 
-#pragma mark InputPin / OutputPin
+
     /**************************************************
      *
      * PIN ALIASES: InputPin / OutputPin
@@ -309,7 +308,7 @@ namespace Motate {
     };
 
 
-#pragma mark IRQPin / LookupIRQPin
+
     /**************************************************
      *
      * PIN CHANGE INTERRUPT PINS: IRQPin / LookupIRQPin
@@ -334,7 +333,9 @@ namespace Motate {
         IRQPin(const std::function<void(void)> &&_interrupt) : Pin<pinNum>(kInput) {};
         IRQPin(const PinOptions_t options, const std::function<void(void)> &&_interrupt, const uint32_t interrupt_settings = kPinInterruptOnChange|kPinInterruptPriorityMedium) : Pin<pinNum>(kInput, options) {};
 
-        void init(const PinOptions_t options = kNormal  ) {Pin<pinNum>::init(kInput, options);};
+        void init(const PinOptions_t options = kNormal  ) {
+        	Pin<pinNum>::init(kInput, options);
+        };
 
         static const bool is_real = false;
 
@@ -416,7 +417,7 @@ namespace Motate {
     using LookupIRQPin = IRQPin< ReversePinLookup<portChar, portPin>::number >;
 
 
-#pragma mark PWMOutputPin / RealPWMOutputPin / PWMLikeOutputPin
+
     /**************************************************
      *
      * PWM ("fake" analog) output pins: PWMOutputPin / RealPWMOutputPin / PWMLikeOutputPin
@@ -443,14 +444,16 @@ namespace Motate {
         bool canPWM() { return true; };
 
         void pwmpin_init(const TimerChannelOutputOptions options) {
+        	timerOrPWM::stop();
             timerOrPWM::setOutputOptions(options);
             timerOrPWM::start();
         };
         void setFrequency(const uint32_t freq) {
+        	timerOrPWM::stop();
             timerOrPWM::setModeAndFrequency(kTimerUpToMatch, freq);
             timerOrPWM::start();
         };
-        operator float() { return timerOrPWM::getDutyCycle(); };
+        operator float() { return 0.0;/*timerOrPWM::getDutyCycle();*/ };
         operator uint32_t() { return timerOrPWM::getExactDutyCycle(); };
         void operator=(const float value) { write(value); };
         void write(const float value) {
@@ -503,7 +506,9 @@ namespace Motate {
         operator float() { return !!Pin<pinNum>::getOutputValue(); };
         operator uint32_t() { return (100 * (!!Pin<pinNum>::getOutputValue())); };
         void operator=(const float value) { write(value); };
-        void write(const float value) { Pin<pinNum>::write(value >= 0.5); };
+        void write(const float value) {
+        	Pin<pinNum>::write(value >= 0.5);
+        };
         void writeRaw(const uint16_t duty) { Pin<pinNum>::write(duty >= 50); };
         uint16_t getTopValue() { return 100; };
         bool canPWM() { return false; };
@@ -543,7 +548,7 @@ namespace Motate {
     };
 
 
-#pragma mark SPIChipSelectPin / SPIMISOPin / SPIMOSIPin / SPISCKPin
+
     /**************************************************
      *
      * SPI PIN METADATA and wiring: SPIChipSelectPin / SPIMISOPin / SPIMOSIPin / SPISCKPin
@@ -592,7 +597,7 @@ namespace Motate {
     constexpr bool IsSPISCKPin() { return SPISCKPin<pinNum>::is_real; };
 
 
-#pragma mark UARTTxPin / UARTRxPin / UARTRTSPin / UARTCTSPin
+
     /**************************************************
      *
      * UART/USART PIN METADATA and wiring: UARTTxPin / UARTRxPin / UARTRTSPin / UARTCTSPin
@@ -646,7 +651,7 @@ namespace Motate {
     constexpr bool IsUARTCTSPin() { return UARTCTSPin<pinNum>::is_real; };
 
 
-#pragma mark ClockOutputPin
+
     /**************************************************
      *
      * Clock Output PIN METADATA and wiring: CLKOutPin

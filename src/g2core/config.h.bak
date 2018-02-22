@@ -171,13 +171,15 @@
 // Sizing and footprints                // chose one based on # of elements in cfgArray
 //typedef uint8_t index_t;              // use this if there are < 256 indexed objects
 typedef uint32_t index_t;               // use this if there are > 255 indexed objects
+										// changed by d.d. report.cpp uses sizeof copy to float
+										// report.cpp:243: memcpy(sr.status_report_list, status_report_list, sizeof(status_report_list));
 
                                         // defines allocated from stack (not-pre-allocated)
 #define NV_FORMAT_LEN 128               // print formatting string max length
 #define NV_MESSAGE_LEN 128              // sufficient space to contain end-user messages
 
                                         // pre-allocated defines (take RAM permanently)
-#define NV_SHARED_STRING_LEN 512        // shared string for string values
+#define NV_SHARED_STRING_LEN 1024        // shared string for string values
 #define NV_BODY_LEN 40                  // body elements - allow for 1 parent + N children
 #define NV_EXEC_LEN 10                  // elements reserved for exec, which won't directly respond
 // (each body element takes about 30 bytes of RAM)
@@ -195,7 +197,8 @@ typedef uint32_t index_t;               // use this if there are > 255 indexed o
 typedef enum {
     TEXT_MODE = 0,                      // sticky text mode
     JSON_MODE,                          // sticky JSON mode
-    AUTO_MODE                           // auto-configure communications mode
+    AUTO_MODE,                          // auto-configure communications mode
+    MARLIN_COMM_MODE,                   // sticky marlin-compatibility mode (if compiled in)
 } commMode;
 
 typedef enum {
@@ -317,6 +320,7 @@ bool nv_index_lt_groups(index_t index); // (see config_app.c)
 bool nv_group_is_prefixed(char *group);
 
 // generic internal functions and accessors
+stat_t set_noop(nvObj_t *nv);           // set nothing and return OK
 stat_t set_nul(nvObj_t *nv);            // set nothing, return OK
 stat_t set_ro(nvObj_t *nv);             // set nothing, return read-only error
 stat_t set_ui8(nvObj_t *nv);            // set uint8_t value

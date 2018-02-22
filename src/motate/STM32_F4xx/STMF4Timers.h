@@ -36,6 +36,8 @@
 #include <functional>
 #include <type_traits>
 
+#define MAX_CHANNEL	4
+
 namespace Motate {
 enum TimerMode {
 	/* InputCapture mode (WAVE = 0) */
@@ -113,6 +115,8 @@ struct Timer {
 	static void _disablePeripheralClock();
 	static const IRQn_Type tcIRQ();
 
+	TIM_OC_InitTypeDef ChannelConfig[4];
+
 	static const bool has_channel_interrupts = false;
 
 	Timer() { init(); };
@@ -121,7 +125,18 @@ struct Timer {
 		setModeAndFrequency(mode, freq);
 	};
 
-	void init() const {
+	void init(){
+		for(int i = 0; i < MAX_CHANNEL; i++)
+		{
+			/* Common configuration for all channels */
+			ChannelConfig[i].OCMode       = TIM_OCMODE_PWM1;
+			ChannelConfig[i].OCPolarity   = TIM_OCPOLARITY_HIGH;
+			ChannelConfig[i].OCFastMode   = TIM_OCFAST_DISABLE;
+			ChannelConfig[i].OCNPolarity  = TIM_OCNPOLARITY_HIGH;
+			ChannelConfig[i].OCNIdleState = TIM_OCNIDLESTATE_RESET;
+			ChannelConfig[i].OCIdleState  = TIM_OCIDLESTATE_RESET;
+		}
+
 		/* Unlock this thing */
 		unlock();
 	};
@@ -210,6 +225,7 @@ struct Timer {
 		TimHandle.Init.Prescaler   = divisor - 1;
 		TimHandle.Init.ClockDivision = 0;
 		TimHandle.Init.CounterMode   = TIM_COUNTERMODE_UP;
+		TimHandle.Init.RepetitionCounter = 0;
 
 		if (HAL_TIM_PWM_Init(&TimHandle) != HAL_OK) {
 			//error("Cannot initialize PWM\n");
@@ -232,21 +248,15 @@ struct Timer {
 
 	void start() const {
 
-		tc()->CR1|=(TIM_CR1_CEN);
+		__HAL_TIM_ENABLE(&TimHandle);
 	};
-/* The counter of a timer instance is disabled only if all the CCx and CCxN
+	/* The counter of a timer instance is disabled only if all the CCx and CCxN
    channels have been disabled */
 #define TIM_CCER_CCxE_MASK  ((uint32_t)(TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E))
 #define TIM_CCER_CCxNE_MASK ((uint32_t)(TIM_CCER_CC1NE | TIM_CCER_CC2NE | TIM_CCER_CC3NE))
 
 	void stop() const {
-        if ((tc()->CCER & TIM_CCER_CCxE_MASK) == 0U)
-          {
-            if((tc()->CCER & TIM_CCER_CCxNE_MASK) == 0U)
-            {
-            	tc()->CR1 &= ~(TIM_CR1_CEN);
-            }
-          }
+		__HAL_TIM_DISABLE(&TimHandle);
 	};
 
 	void stopOnMatch() const {
@@ -266,29 +276,44 @@ struct Timer {
 	// WARNING: There are no checks on the bounds of channel!
 	void setExactDutyCycle(const uint8_t channel, const uint32_t absolute) {
 		//tc()->CONTROLS[channel].CnV = absolute;
+
+		if(!channel || channel > MAX_CHANNEL)
+			return;
+
+		__HAL_TIM_SET_COMPARE(&TimHandle, TIM_CHANNEL_1, absolute);
+
 	};
 
 	void setOutputOptions(const uint8_t channel, const uint32_t options) {
+
+		if(!channel || channel > MAX_CHANNEL)
+			return;
+
+		if (options & kToggleOnMatch) {
+			//bit_options = TPM_CnSC_ELSA_MASK | TPM_CnSC_MSA_MASK;
+		}
+		else if ( (options & (kClearOnMatch | kSetOnOverflow)) == (kClearOnMatch | kSetOnOverflow) ) {
+			//bit_options = TPM_CnSC_ELSB_MASK | TPM_CnSC_MSB_MASK;
+			ChannelConfig[channel-1].OCPolarity   = TIM_OCPOLARITY_HIGH;
+		}
+		else if ( (options & (kSetOnMatch | kClearOnOverflow)) == (kSetOnMatch | kClearOnOverflow) ) {
+			//bit_options = TPM_CnSC_ELSA_MASK | TPM_CnSC_MSB_MASK;
+			ChannelConfig[channel-1].OCPolarity   = TIM_OCPOLARITY_LOW;
+		}
+		else if (options & kClearOnMatch) {
+			//bit_options = TPM_CnSC_ELSB_MASK | TPM_CnSC_MSA_MASK;
+		}
+		else if (options & kSetOnMatch) {
+			//bit_options = TPM_CnSC_ELSA_MASK | TPM_CnSC_MSA_MASK | TPM_CnSC_MSB_MASK;
+		}
+
+		/* Set the pulse value for channel 1 */
+		if (HAL_TIM_PWM_ConfigChannel(&TimHandle, &ChannelConfig[channel-1], TIM_CHANNEL_1) != HAL_OK)
+		{
+			/* Configuration Error */
+			while(1);//Error_Handler();
+		}
 		/*
-            uint32_t bit_options = 00;
-
-            if (options & kToggleOnMatch) {
-                bit_options = TPM_CnSC_ELSA_MASK | TPM_CnSC_MSA_MASK;
-            }
-            else if ( (options & (kClearOnMatch | kSetOnOverflow)) == (kClearOnMatch | kSetOnOverflow) ) {
-                bit_options = TPM_CnSC_ELSB_MASK | TPM_CnSC_MSB_MASK;
-            }
-            else if ( (options & (kSetOnMatch | kClearOnOverflow)) == (kSetOnMatch | kClearOnOverflow) ) {
-                bit_options = TPM_CnSC_ELSA_MASK | TPM_CnSC_MSB_MASK;
-            }
-            else if (options & kClearOnMatch) {
-                bit_options = TPM_CnSC_ELSB_MASK | TPM_CnSC_MSA_MASK;
-            }
-            else if (options & kSetOnMatch) {
-                bit_options = TPM_CnSC_ELSA_MASK | TPM_CnSC_MSA_MASK | TPM_CnSC_MSB_MASK;
-            }
-
-
             tc()->CONTROLS[channel].CnSC = (tc()->CONTROLS[channel].CnSC & ~(
                                                                              TPM_CnSC_ELSA_MASK |
                                                                              TPM_CnSC_ELSB_MASK |
@@ -303,17 +328,40 @@ struct Timer {
 	// ASSUMPTION: We stopped it with the corresponding function.
 	// ASSUMPTION: The pin is not and was not in Toggle mode.
 	void startPWMOutput(const uint8_t channel) {
+
+		if(!channel || channel > MAX_CHANNEL)
+			return;
 		/*
             tc()->CONTROLS[channel].CnSC = (tc()->CONTROLS[channel].CnSC & ~(
                                                                              TPM_CnSC_ELSA_MASK |
                                                                              TPM_CnSC_ELSB_MASK
                                                                              )) | TPM_CnSC_ELSB_MASK;
-		 */      }
+		 */
+		/* Set the pulse value for channel 1 */
+		ChannelConfig[channel-1].Pulse = TimHandle.Init.Period/2;
+		if (HAL_TIM_PWM_ConfigChannel(&TimHandle, &ChannelConfig[channel-1], TIM_CHANNEL_1/*TIM_CHANNEL_1*/) != HAL_OK)
+		{
+			/* Configuration Error */
+			//Error_Handler();
+			while(1);
+		}
+
+		/* Start channel 1 */
+		if (HAL_TIM_PWM_Start(&TimHandle, TIM_CHANNEL_1/*TIM_CHANNEL_1*/) != HAL_OK)
+		{
+			/* PWM Generation Error */
+			while(1);//Error_Handler();
+		}
+	}
 
 	// These are special function for stopping output waveforms.
 	// This disables the channel.
 	// ASSUMPTION: The pin is not in Toggle mode.
 	void stopPWMOutput(const uint8_t channel) {
+
+		if(!channel || channel > MAX_CHANNEL)
+			return;
+
 		/*
             tc()->CONTROLS[channel].CnSC =
             (tc()->CONTROLS[channel].CnSC & ~(
@@ -321,6 +369,12 @@ struct Timer {
                                               TPM_CnSC_ELSB_MASK
                                               ));
 		 */
+		/* Start channel 1 */
+		if (HAL_TIM_PWM_Stop(&TimHandle, TIM_CHANNEL_1/*TIM_CHANNEL_1*/) != HAL_OK)
+		{
+			/* PWM Generation Error */
+			while(1);//Error_Handler();
+		}
 	};
 
 	void setInterrupts(const uint32_t interrupts, const int16_t channel = -1) {
@@ -410,8 +464,10 @@ struct Timer {
 
 template<uint8_t timerNum, uint8_t channelNum>
 struct TimerChannel : Timer<timerNum> {
-	TimerChannel() : Timer<timerNum>{} {};
-	TimerChannel(const TimerMode mode, const uint32_t freq) : Timer<timerNum>{mode, freq} {};
+	bool started;
+
+	TimerChannel() : Timer<timerNum>(), started(false) {setInterrupts(kInterruptsOff);}
+	TimerChannel(const TimerMode mode, const uint32_t freq) : Timer<timerNum>(mode, freq), started(false) {setInterrupts(kInterruptsOff);};
 
 	void setDutyCycle(const float ratio) {
 		Timer<timerNum>::setDutyCycleForChannel(channelNum, ratio);
@@ -426,10 +482,14 @@ struct TimerChannel : Timer<timerNum> {
 	};
 
 	void startPWMOutput() {
-		Timer<timerNum>::startPWMOutput(channelNum);
+		if(!started){
+			Timer<timerNum>::startPWMOutput(channelNum);
+			started = true;
+		}
 	};
 
 	void stopPWMOutput() {
+		started = 0;
 		Timer<timerNum>::stopPWMOutput(channelNum);
 	}
 
@@ -466,8 +526,8 @@ struct TimerChannel : Timer<timerNum> {
  *
  **************************************************/
 struct SysTickEvent {
-    const std::function<void(void)> callback;
-    SysTickEvent *next;
+	const std::function<void(void)> callback;
+	SysTickEvent *next;
 };
 
 typedef const uint8_t timer_number;
@@ -502,43 +562,43 @@ struct Timer<SysTickTimerNum> {
 	void _increment() {
 		_motateTickCount++;
 	};
-    void registerEvent(SysTickEvent *new_event) {
-        if (firstEvent == nullptr) {
-            firstEvent = new_event;
-            return;
-        }
-        SysTickEvent *event = firstEvent;
-        if (new_event == event) { return; }
-        while (event->next != nullptr) {
-            event = event->next;
-            if (new_event == event) { return; }
-        }
-        event->next = new_event;
-        new_event->next = nullptr;
-    };
+	void registerEvent(SysTickEvent *new_event) {
+		if (firstEvent == nullptr) {
+			firstEvent = new_event;
+			return;
+		}
+		SysTickEvent *event = firstEvent;
+		if (new_event == event) { return; }
+		while (event->next != nullptr) {
+			event = event->next;
+			if (new_event == event) { return; }
+		}
+		event->next = new_event;
+		new_event->next = nullptr;
+	};
 
-    void unregisterEvent(SysTickEvent *new_event) {
-        if (firstEvent == new_event) {
-            firstEvent = firstEvent->next;
-            return;
-        }
-        SysTickEvent *event = firstEvent;
-        while (event->next != nullptr) {
-            if (event->next == new_event) {
-                event->next = event->next->next;
-                return;
-            }
-            event = event->next;
-        }
-    };
+	void unregisterEvent(SysTickEvent *new_event) {
+		if (firstEvent == new_event) {
+			firstEvent = firstEvent->next;
+			return;
+		}
+		SysTickEvent *event = firstEvent;
+		while (event->next != nullptr) {
+			if (event->next == new_event) {
+				event->next = event->next->next;
+				return;
+			}
+			event = event->next;
+		}
+	};
 
-    void _handleEvents() {
-        SysTickEvent *event = firstEvent;
-        while (event != nullptr) {
-            event->callback();
-            event = event->next;
-        }
-    };
+	void _handleEvents() {
+		SysTickEvent *event = firstEvent;
+		while (event != nullptr) {
+			event->callback();
+			event = event->next;
+		}
+	};
 	// Placeholder for user code.
 	static void interrupt() __attribute__ ((weak));
 };
@@ -559,10 +619,10 @@ struct Timer<WatchDogTimerNum> {
 	};
 
 	void disable() {
-		  /* Reset WWDG Control register */
+		/* Reset WWDG Control register */
 		WWDG->CR  = (uint32_t)0x0000007F;
 
-		  /* Reset WWDG Configuration register */
+		/* Reset WWDG Configuration register */
 		WWDG->CFR = (uint32_t)0x0000007F;
 	};
 
@@ -589,9 +649,9 @@ struct Timeout {
 	uint32_t start_, delay_;
 	Timeout() : start_ {0}, delay_ {0} {};
 
-    bool isSet() {
-        return (start_ > 0);
-    }
+	bool isSet() {
+		return (start_ > 0);
+	}
 
 	bool isPast() {
 		return ((SysTickTimer.getValue() - start_) > delay_);
@@ -601,10 +661,10 @@ struct Timeout {
 		start_ = SysTickTimer.getValue();
 		delay_ = delay;
 	}
-    void clear() {
-        start_ = 0;
-        delay_ = 0;
-    }
+	void clear() {
+		start_ = 0;
+		delay_ = 0;
+	}
 };
 
 #define MOTATE_TIMER_INTERRUPT(number) template<> void Motate::Timer<number>::interrupt()

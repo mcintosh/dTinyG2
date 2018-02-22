@@ -175,8 +175,29 @@ struct AvailablePWMOutputPin<ReversePinLookup<'A', 15>::number> : RealPWMOutputP
 	};
 };
 */
+_MAKE_MOTATE_PIN(kSpindle_PwmPinNumber, 'B',  7);
 
 
+typedef TimerChannel<2,2> parentTimerType;
+template<>
+struct AvailablePWMOutputPin<ReversePinLookup<'B', 7>::number> : RealPWMOutputPin< ReversePinLookup<'B', 7>::number, parentTimerType>
+{
+	static const pin_number pinNum = ReversePinLookup<'B', 7>::number;
+	AvailablePWMOutputPin() : RealPWMOutputPin<pinNum, parentTimerType>(kOutputPWM)
+	{
+		pwmpin_init(false ? kPWMOnInverted : kPWMOn);
+	};
+	AvailablePWMOutputPin(const PinOptions_t options, const uint32_t freq) : RealPWMOutputPin<pinNum, parentTimerType>(kOutputPWM, options, freq)
+	{
+		pwmpin_init((false ^ ((options & kPWMPinInverted)?true:false)) ? kPWMOnInverted : kPWMOn);
+	};
+	using RealPWMOutputPin<pinNum, parentTimerType>::operator=;
+	// Signal to _GetAvailablePWMOrAlike that we're here, AND a real Pin<> exists.
+	static constexpr bool _isAvailable()
+	{
+		return !ReversePinLookup<'B', 7>::isNull();
+	};
+};
 
 
 }  // namespace Motate
