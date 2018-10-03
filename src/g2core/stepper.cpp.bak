@@ -34,7 +34,6 @@
 #include "stepper.h"
 #include "encoder.h"
 #include "planner.h"
-#include "hardware.h"
 #include "text_parser.h"
 #include "util.h"
 #include "controller.h"
@@ -43,6 +42,7 @@
 /**** Debugging output with semihosting ****/
 
 #include "MotateDebug.h"
+#include "../board/dStepko/hardware.h"
 
 // Unless debugging, this should always read "#if 0 && ..."
 // DON'T COMMIT with anything else!
@@ -259,7 +259,6 @@ namespace Motate {            // Must define timer interrupts inside the Motate 
 template<>
 void dda_timer_type::interrupt()
 {
-
     dda_timer.getInterruptCause();  // clear interrupt condition
 
     // clear all steps from the previous interrupt
@@ -469,7 +468,7 @@ static void _load_move()
 #if (MOTORS > 5)
         motor_6.motionStopped();    // ...start motor power timeouts
 #endif
-        stepper_debug("â€˘");
+        stepper_debug("•");
         return;
     } // if (st_pre.buffer_state != PREP_BUFFER_OWNED_BY_LOADER)
 
@@ -662,7 +661,7 @@ static void _load_move()
 
 stat_t st_prep_line(float travel_steps[], float following_error[], float segment_time)
 {
-    stepper_debug("đź�¶");
+    stepper_debug("😶");
     // trap assertion failures and other conditions that would prevent queuing the line
     if (st_pre.buffer_state != PREP_BUFFER_OWNED_BY_EXEC) {     // never supposed to happen
         return (cm_panic(STAT_INTERNAL_ERROR, "st_prep_line() prep sync error"));
@@ -741,7 +740,7 @@ stat_t st_prep_line(float travel_steps[], float following_error[], float segment
     }
     st_pre.block_type = BLOCK_TYPE_ALINE;
     st_pre.buffer_state = PREP_BUFFER_OWNED_BY_LOADER;    // signal that prep buffer is ready
-    stepper_debug("đź‘ŤđźŹ»");
+    stepper_debug("👍🏻");
     return (STAT_OK);
 }
 

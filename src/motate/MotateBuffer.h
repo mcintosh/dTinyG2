@@ -355,8 +355,8 @@ namespace Motate {
         // Internal properties!
         base_type _data[_size+1];
 
-        uint16_t _write_offset;             // The offset into the buffer of our next write
-        uint16_t _last_known_read_offset;   // The offset into the buffer of the last known read (cached)
+        uint16_t _write_offset = 0;             // The offset into the buffer of our next write
+        uint16_t _last_known_read_offset = 0;   // The offset into the buffer of the last known read (cached)
 
         uint16_t _transfer_requested = 0;   // keep track of how much we have requested. Non-zero means a request is active.
 
