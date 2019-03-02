@@ -52,6 +52,8 @@ void setup() __attribute__ ((weak));
 
 extern void loop();
 
+volatile bool g_interrupt_enabled;
+
 
 // ----- main() --------------------------------------------------------------
 

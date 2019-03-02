@@ -42,17 +42,10 @@
 /**** Debugging output with semihosting ****/
 
 #include "MotateDebug.h"
-#include "../board/dStepko/hardware.h"
 
-// Unless debugging, this should always read "#if 0 && ..."
-// DON'T COMMIT with anything else!
-#if 0 && (IN_DEBUGGER == 1)
-template<int32_t len>
-void stepper_debug(const char (&str)[len]) { Motate::debug.write(str); };
-#else
-template<int32_t len>
-void stepper_debug(const char (&str)[len]) { ; };
-#endif
+/* Note: stepper_debug statements removed 1/16/17 in SHA eb0905ccae03c04f99e6f471cbe029002f0324c6. 
+ * See earlier commits to recover
+ */
 
 /**** Allocate structures ****/
 
@@ -63,9 +56,6 @@ static stRunSingleton_t st_run;
 /**** Static functions ****/
 
 static void _load_move(void);
-
-// handy macro
-//#define _f_to_period(f) (uint16_t)((float)F_CPU / (float)f)
 
 /**** Setup motate ****/
 
@@ -79,7 +69,7 @@ dda_timer_type dda_timer     {kTimerUpToMatch, FREQUENCY_DDA};      // stepper p
 exec_timer_type exec_timer;         // triggers calculation of next+1 stepper segment
 fwd_plan_timer_type fwd_plan_timer; // triggers planning of next block
 
-// SystickEvent for handling dweels (must be registered before it is active)
+// SystickEvent for handling dwells (must be registered before it is active)
 Motate::SysTickEvent dwell_systick_event {[&] {
     if (--st_run.dwell_ticks_downcount == 0) {
         SysTickTimer.unregisterEvent(&dwell_systick_event);
@@ -87,6 +77,25 @@ Motate::SysTickEvent dwell_systick_event {[&] {
     }
 }, nullptr};
 
+/* Note on the above:
+It's a lambda function creating a closure function. 
+The full implementation that uses it is small and may help: 
+https://github.com/synthetos/Motate/blob/41e5b92a98de4b268d1804bf6eadf3333298fc75/MotateProject/motate/Atmel_sam_common/SamTimers.h#L1147-L1218
+It's just like a function, and is used as a function pointer.
+
+But the closure part means that whatever variables that were in scope where the 
+[&](parameters){code} is will be captured by the compiler as references in the generated 
+function and used wherever the function gets called. In this particular use, there isn't 
+anything that wouldn't be available anywhere in that file, but they're not being called 
+from that file. They're being called by the systick interrupt which is over in SamTmers.cpp
+So this saves a bunch of work exposing bits that the systick would need to call and encapsulates it.
+And there's almost no runtime overhead. Just a check for a valid function pointer and then a call of it.
+I'd like to get rid of that check but it's more work than its worth.
+
+See here for some good info on lambda functions in C++
+http://www.cprogramming.com/c++11/c++11-lambda-closures.html
+http://en.cppreference.com/w/cpp/language/lambda
+*/
 
 /************************************************************************************
  **** CODE **************************************************************************
@@ -212,6 +221,7 @@ stat_t st_clc(nvObj_t *nv)    // clear diagnostic counters, reset stepper prep
  *
  *  Handles motor power-down timing, low-power idle, and adaptive motor power
  */
+
 stat_t st_motor_power_callback()     // called by controller
 {
     if (!mp_is_phat_city_time()) {   // don't process this if you are time constrained in the planner
@@ -221,9 +231,7 @@ stat_t st_motor_power_callback()     // called by controller
     bool have_actually_stopped = false;
     if ((!st_runtime_isbusy()) &&
         (st_pre.buffer_state != PREP_BUFFER_OWNED_BY_LOADER) &&
-        (cm_get_cycle_state() == CYCLE_OFF)
-        )
-    {    // if there are no moves to load...
+        (cm_get_machine_state() != MACHINE_CYCLE)) {    // if there are no moves to load...
         have_actually_stopped = true;
     }
 
@@ -262,17 +270,13 @@ void dda_timer_type::interrupt()
     dda_timer.getInterruptCause();  // clear interrupt condition
 
     // clear all steps from the previous interrupt
-	// for (uint8_t motor=0; motor<MOTORS; motor++) {
-	//	  Motors[motor]->stepEnd();
-	// }
-	// loop unrolled version (it's actually faster)
     motor_1.stepEnd();
     motor_2.stepEnd();
 #if MOTORS > 2
     motor_3.stepEnd();
 #endif
 #if MOTORS > 3
-    motor_4.stepEnd();
+    //motor_4.stepEnd();
 #endif
 #if MOTORS > 4
     motor_5.stepEnd();
@@ -297,29 +301,29 @@ void dda_timer_type::interrupt()
 //    }
 
     // process DDAs for each motor
-        if  ((st_run.mot[MOTOR_1].substep_accumulator += st_run.mot[MOTOR_1].substep_increment) > 0) {
-            motor_1.stepStart();        // turn step bit on
-            st_run.mot[MOTOR_1].substep_accumulator -= st_run.dda_ticks_X_substeps;
-            INCREMENT_ENCODER(MOTOR_1);
-        }
-        if ((st_run.mot[MOTOR_2].substep_accumulator += st_run.mot[MOTOR_2].substep_increment) > 0) {
-            motor_2.stepStart();        // turn step bit on
-            st_run.mot[MOTOR_2].substep_accumulator -= st_run.dda_ticks_X_substeps;
-            INCREMENT_ENCODER(MOTOR_2);
-        }
+    if  ((st_run.mot[MOTOR_1].substep_accumulator += st_run.mot[MOTOR_1].substep_increment) > 0) {
+        motor_1.stepStart();        // turn step bit on
+        st_run.mot[MOTOR_1].substep_accumulator -= st_run.dda_ticks_X_substeps;
+        INCREMENT_ENCODER(MOTOR_1);
+    }
+    if ((st_run.mot[MOTOR_2].substep_accumulator += st_run.mot[MOTOR_2].substep_increment) > 0) {
+        motor_2.stepStart();        // turn step bit on
+        st_run.mot[MOTOR_2].substep_accumulator -= st_run.dda_ticks_X_substeps;
+        INCREMENT_ENCODER(MOTOR_2);
+    }
 #if MOTORS > 2
-        if ((st_run.mot[MOTOR_3].substep_accumulator += st_run.mot[MOTOR_3].substep_increment) > 0) {
-            motor_3.stepStart();        // turn step bit on
-            st_run.mot[MOTOR_3].substep_accumulator -= st_run.dda_ticks_X_substeps;
-            INCREMENT_ENCODER(MOTOR_3);
-        }
+    if ((st_run.mot[MOTOR_3].substep_accumulator += st_run.mot[MOTOR_3].substep_increment) > 0) {
+        motor_3.stepStart();        // turn step bit on
+        st_run.mot[MOTOR_3].substep_accumulator -= st_run.dda_ticks_X_substeps;
+        INCREMENT_ENCODER(MOTOR_3);
+    }
 #endif
 #if MOTORS > 3
-        if ((st_run.mot[MOTOR_4].substep_accumulator += st_run.mot[MOTOR_4].substep_increment) > 0) {
-            motor_4.stepStart();        // turn step bit on
-            st_run.mot[MOTOR_4].substep_accumulator -= st_run.dda_ticks_X_substeps;
-            INCREMENT_ENCODER(MOTOR_4);
-        }
+    if ((st_run.mot[MOTOR_4].substep_accumulator += st_run.mot[MOTOR_4].substep_increment) > 0) {
+        //motor_4.stepStart();        // turn step bit on
+        st_run.mot[MOTOR_4].substep_accumulator -= st_run.dda_ticks_X_substeps;
+        INCREMENT_ENCODER(MOTOR_4);
+    }
 #endif
 #if MOTORS > 4
         if ((st_run.mot[MOTOR_5].substep_accumulator += st_run.mot[MOTOR_5].substep_increment) > 0) {
@@ -336,7 +340,7 @@ void dda_timer_type::interrupt()
         }
 #endif
 
-    // Process end of segment. 
+    // Process end of segment.
     // One more interrupt will occur to turn of any pulses set in this pass.
     if (--st_run.dda_ticks_downcount == 0) {
         _load_move();       // load the next move at the current interrupt level
@@ -451,7 +455,7 @@ static void _load_move()
 
 	// ...start motor power timeouts
 	//	for (uint8_t motor = MOTOR_1; motor < MOTORS; motor++) {
-	//		Motors[motor]->motionStopped();    
+	//		Motors[motor]->motionStopped();
 	//  }
 	// loop unrolled version
         motor_1.motionStopped();    // ...start motor power timeouts
@@ -626,7 +630,7 @@ static void _load_move()
         // handle synchronous commands
     } else if (st_pre.block_type == BLOCK_TYPE_COMMAND) {
         mp_runtime_command(st_pre.bf);
-        
+
     } // else null - which is okay in many cases
 
     // all other cases drop to here (e.g. Null moves after Mcodes skip to here)
@@ -926,7 +930,7 @@ stat_t st_set_su(nvObj_t *nv)			// motor steps per unit (direct)
         if (cm_get_axis_type(nv->index) == AXIS_TYPE_LINEAR) {
             nv->value *= INCHES_PER_MM;
         }
-    } 
+    }
     set_flt(nv);
     st_cfg.mot[m].units_per_step = 1.0/st_cfg.mot[m].steps_per_unit;
 
@@ -936,20 +940,45 @@ stat_t st_set_su(nvObj_t *nv)			// motor steps per unit (direct)
     return(STAT_OK);
 }
 
+stat_t st_set_ep(nvObj_t *nv)            // set motor enable polarity
+{
+    if (nv->value < IO_ACTIVE_LOW) { return (STAT_INPUT_LESS_THAN_MIN_VALUE); }
+    if (nv->value > IO_ACTIVE_HIGH) { return (STAT_INPUT_EXCEEDS_MAX_VALUE); }
+
+    uint8_t motor = _get_motor(nv->index);
+    if (motor > MOTORS) { return STAT_INPUT_VALUE_RANGE_ERROR; };
+
+    Motors[motor]->setEnablePolarity((ioMode)nv->value);
+    return (STAT_OK);
+}
+
+stat_t st_get_ep(nvObj_t *nv)            // get motor enable polarity
+{
+    if (nv->value < IO_ACTIVE_LOW) { return (STAT_INPUT_LESS_THAN_MIN_VALUE); }
+    if (nv->value > IO_ACTIVE_HIGH) { return (STAT_INPUT_EXCEEDS_MAX_VALUE); }
+
+    uint8_t motor = _get_motor(nv->index);
+    if (motor > MOTORS) { return STAT_INPUT_VALUE_RANGE_ERROR; };
+
+    nv->value = (float)Motors[motor]->getEnablePolarity();
+    nv->valuetype = TYPE_INT;
+    return (STAT_OK);
+}
+
 stat_t st_set_pm(nvObj_t *nv)            // set motor power mode
 {
     if (nv->value < 0) {
         nv->valuetype = TYPE_NULL;
         return (STAT_INPUT_LESS_THAN_MIN_VALUE);
     }
-    if (nv->value >= MOTOR_POWER_MODE_MAX_VALUE) { 
+    if (nv->value >= MOTOR_POWER_MODE_MAX_VALUE) {
         nv->valuetype = TYPE_NULL;
-        return (STAT_INPUT_EXCEEDS_MAX_VALUE); 
+        return (STAT_INPUT_EXCEEDS_MAX_VALUE);
     }
     uint8_t motor = _get_motor(nv->index);
     if (motor > MOTORS) {
         nv->valuetype = TYPE_NULL;
-        return STAT_INPUT_VALUE_RANGE_ERROR; 
+        return STAT_INPUT_VALUE_RANGE_ERROR;
     };
 
     // We do this *here* in order for this to take effect immediately.
@@ -963,7 +992,7 @@ stat_t st_get_pm(nvObj_t *nv)            // get motor power mode
     uint8_t motor = _get_motor(nv->index);
     if (motor > MOTORS) {
         nv->valuetype = TYPE_NULL;
-        return STAT_INPUT_VALUE_RANGE_ERROR; 
+        return STAT_INPUT_VALUE_RANGE_ERROR;
     };
 
     nv->value = (float)Motors[motor]->getPowerMode();
@@ -982,7 +1011,7 @@ stat_t st_set_pl(nvObj_t *nv)    // motor power level
 {
     if (nv->value < (float)0.0) {
         nv->valuetype = TYPE_NULL;
-        return (STAT_INPUT_LESS_THAN_MIN_VALUE); 
+        return (STAT_INPUT_LESS_THAN_MIN_VALUE);
     }
     if (nv->value > (float)1.0) {
         nv->valuetype = TYPE_NULL;
@@ -1044,7 +1073,7 @@ stat_t st_set_mt(nvObj_t *nv)
 
 // Make sure this function is not part of initialization --> f00
 // nv->value is seconds of timeout
-stat_t st_set_me(nvObj_t *nv)    
+stat_t st_set_me(nvObj_t *nv)
 {
     for (uint8_t motor = MOTOR_1; motor < MOTORS; motor++) {
         Motors[motor]->enable(nv->value);   // nv->value is the timeout or 0 for default
@@ -1054,7 +1083,7 @@ stat_t st_set_me(nvObj_t *nv)
 
 // Make sure this function is not part of initialization --> f00
 // nv-value is motor to disable, or 0 for all motors
-stat_t st_set_md(nvObj_t *nv)    
+stat_t st_set_md(nvObj_t *nv)
 {
     if (nv->value < 0) {
         nv->valuetype = TYPE_NULL;
@@ -1063,7 +1092,7 @@ stat_t st_set_md(nvObj_t *nv)
     if (nv->value > MOTORS) {
         nv->valuetype = TYPE_NULL;
         return (STAT_INPUT_EXCEEDS_MAX_VALUE);
-    }    
+    }
     // de-energize all motors
     if ((uint8_t)nv->value == 0) {      // 0 means all motors
         for (uint8_t motor = MOTOR_1; motor < MOTORS; motor++) {
@@ -1097,6 +1126,7 @@ static const char fmt_0tr[] = "[%s%s] m%s travel per revolution%10.4f%s\n";
 static const char fmt_0mi[] = "[%s%s] m%s microsteps%16d [1,2,4,8,16,32]\n";
 static const char fmt_0su[] = "[%s%s] m%s steps per unit %17.5f steps per%s\n";
 static const char fmt_0po[] = "[%s%s] m%s polarity%18d [0=normal,1=reverse]\n";
+static const char fmt_0ep[] = "[%s%s] m%s enable polarity%11d [0=active HIGH,1=ractive LOW]\n";
 static const char fmt_0pm[] = "[%s%s] m%s power management%10d [0=disabled,1=always on,2=in cycle,3=when moving]\n";
 static const char fmt_0pl[] = "[%s%s] m%s motor power level%13.3f [0.000=minimum, 1.000=maximum]\n";
 static const char fmt_pwr[] = "[%s%s] Motor %c power level:%12.3f\n";
@@ -1135,6 +1165,7 @@ void st_print_tr(nvObj_t *nv) { _print_motor_flt_units(nv, fmt_0tr, cm_get_units
 void st_print_mi(nvObj_t *nv) { _print_motor_int(nv, fmt_0mi);}
 void st_print_su(nvObj_t *nv) { _print_motor_flt_units(nv, fmt_0su, cm_get_units_mode(MODEL));}
 void st_print_po(nvObj_t *nv) { _print_motor_int(nv, fmt_0po);}
+void st_print_ep(nvObj_t *nv) { _print_motor_int(nv, fmt_0ep);}
 void st_print_pm(nvObj_t *nv) { _print_motor_int(nv, fmt_0pm);}
 void st_print_pl(nvObj_t *nv) { _print_motor_flt(nv, fmt_0pl);}
 void st_print_pwr(nvObj_t *nv){ _print_motor_pwr(nv, fmt_pwr);}

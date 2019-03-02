@@ -32,6 +32,62 @@
 
 #include "stm32f4xx.h"
 
+
+/******************************************************************************
+ *
+ */
+
+static uint16_t InterruptDisabledCount = 0;
+typedef uint32_t irqflags_t;
+
+static inline irqflags_t cpu_irq_save(void) {
+	/* Disable interrupts */
+	__disable_irq();
+
+	/* Increase number of disable interrupt function calls */
+	InterruptDisabledCount++;
+	return InterruptDisabledCount;
+}
+
+static inline void cpu_irq_restore(irqflags_t flags) {
+	/* Decrease number of disable interrupt function calls */
+	if (InterruptDisabledCount) {
+		InterruptDisabledCount--;
+	}
+
+	/* Check if we are ready to enable interrupts */
+	if (!InterruptDisabledCount) {
+		/* Enable interrupts */
+		__enable_irq();
+	}
+
+}
+
+static inline void cpu_irq_disable(void) {
+	/* Disable interrupts */
+	__disable_irq();
+
+	/* Increase number of disable interrupt function calls */
+	InterruptDisabledCount++;
+}
+
+static inline uint8_t cpu_irq_enable(void) {
+	/* Decrease number of disable interrupt function calls */
+	if (InterruptDisabledCount) {
+		InterruptDisabledCount--;
+	}
+
+	/* Check if we are ready to enable interrupts */
+	if (!InterruptDisabledCount) {
+		/* Enable interrupts */
+		__enable_irq();
+	}
+	/* Return interrupt enabled status */
+	return !InterruptDisabledCount;
+
+}
+
+
 namespace Motate {
 
 

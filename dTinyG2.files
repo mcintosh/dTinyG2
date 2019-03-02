@@ -26,6 +26,14 @@ src/board/dStepko/dStepko-pinout.h
 src/board/dStepko/hardware.cpp
 src/board/dStepko/hardware.h
 src/board/dStepko/motate_pin_assignments.h
+src/board/dStepko_new/board_stepper.cpp
+src/board/dStepko_new/board_stepper.h
+src/board/dStepko_new/board_xio.cpp
+src/board/dStepko_new/board_xio.h
+src/board/dStepko_new/dStepko-pinout.h
+src/board/dStepko_new/hardware.cpp
+src/board/dStepko_new/hardware.h
+src/board/dStepko_new/motate_pin_assignments.h
 src/g2core/canonical_machine.cpp
 src/g2core/canonical_machine.h
 src/g2core/config.cpp
@@ -61,6 +69,8 @@ src/g2core/json_parser.h
 src/g2core/kinematics.cpp
 src/g2core/kinematics.h
 src/g2core/main.cpp
+src/g2core/marlin_compatibility.cpp
+src/g2core/marlin_compatibility.h
 src/g2core/persistence.cpp
 src/g2core/persistence.h
 src/g2core/plan_arc.cpp

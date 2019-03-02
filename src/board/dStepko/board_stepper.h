@@ -1,9 +1,10 @@
 /*
  * board_stepper.h - board-specific code for stepper.h
+ * For: /board/g2v9
  * This file is part of the g2core project
  *
- * Copyright (c) 2016 Alden S. Hart, Jr.
- * Copyright (c) 2016 Robert Giseburt
+ * Copyright (c) 2016 - 2018 Alden S. Hart, Jr.
+ * Copyright (c) 2016 - 2018 Robert Giseburt
  *
  * This file ("the software") is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2 as published by the
@@ -28,9 +29,8 @@
 #ifndef BOARD_STEPPER_H_ONCE
 #define BOARD_STEPPER_H_ONCE
 
-#include "../dStepko/hardware.h"  // for MOTORS
+#include "hardware.h"  // for MOTORS
 #include "step_dir_driver.h"
-
 
 extern StepDirStepper<Motate::kSocket1_StepPinNumber,
                       Motate::kSocket1_DirPinNumber,
@@ -68,15 +68,14 @@ extern StepDirStepper<Motate::kSocket4_StepPinNumber,
                       Motate::kSocket4_VrefPinNumber>
     motor_4;
 
-extern StepDirStepper<
-    Motate::kSocket5_StepPinNumber,
-    Motate::kSocket5_DirPinNumber,
-    Motate::kSocket5_EnablePinNumber,
-    Motate::kSocket5_Microstep_0PinNumber,
-    Motate::kSocket5_Microstep_1PinNumber,
-    Motate::kSocket5_Microstep_2PinNumber,
-    Motate::kSocket5_VrefPinNumber>
-motor_5;
+// extern StepDirStepper<
+//    Motate::kSocket5_StepPinNumber,
+//    Motate::kSocket5_DirPinNumber,
+//    Motate::kSocket5_EnablePinNumber,
+//    Motate::kSocket5_Microstep_0PinNumber,
+//    Motate::kSocket5_Microstep_1PinNumber,
+//    Motate::kSocket5_Microstep_2PinNumber,
+//    Motate::kSocket5_VrefPinNumber> motor_5;
 
 // extern StepDirStepper<
 //    Motate::kSocket6_StepPinNumber,

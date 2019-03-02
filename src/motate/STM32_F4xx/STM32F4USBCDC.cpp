@@ -248,13 +248,8 @@ static int8_t CDC_Itf_TxDone(uint8_t* Buf, uint32_t *Len)
 {
 	uint32_t len = *Len;
 
-	SerialUSB._last_tx_position += len;
 
-	if (SerialUSB.transfer_tx_done_callback) {
-		SerialUSB.transfer_tx_done_callback();
-	}
-
-  return (USBD_OK);
+	return (USBD_OK);
 }
 }
 
@@ -275,33 +270,9 @@ bool STM32F4USBCDC::startRXTransfer(char *buffer, const uint16_t length, char *b
     return true;//usb.transfer(read_endpoint, _rx_dma_descriptor);
 };
 
-/*
-bool STM32F4USBCDC::startRXTransfer(char *buffer, const uint16_t length)
-{
-
-
- 	int l=length;
-	char *buffer_save = buffer;
-
-	_last_rx_position = buffer;
-
-	return true;//TODO usb.transfer(read_endpoint, _rx_dma_descriptor);
-}
-*/
 bool STM32F4USBCDC::TXTransferReady(uint16_t sent_)
 {
-/*
-	  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
-	  if(hcdc->TxState == 0)
-	  {
-		  _last_tx_position += sent_;
-		  return true;
-	  }
-	  else
-*/
-	  {
-		  return false;
-	  }
+	return true;
 }
 bool STM32F4USBCDC::RXTransferReady(uint16_t read_)
 {
@@ -312,23 +283,31 @@ bool STM32F4USBCDC::startTXTransfer(char *buffer, const uint16_t length)
 {
 	USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)USBD_Device.pClassData;
 
-	while(hcdc->TxState)
-	{
+	irqflags_t flags;
+
+	while(hcdc->TxState){
 
 	}
+
+	flags = cpu_irq_save();
+
 	USBD_CDC_SetTxBuffer(&USBD_Device, (uint8_t*)buffer, length);
 
 	if(USBD_CDC_TransmitPacket(&USBD_Device) == USBD_OK)
 	{
 		_last_tx_position = buffer;
 	}
+	else
+	{
+		_last_tx_position = buffer;
+	}
+	cpu_irq_restore(flags);
 
 	SerialUSB._last_tx_position += length;
 
 	if (SerialUSB.transfer_tx_done_callback) {
 		SerialUSB.transfer_tx_done_callback();
 	}
-
 	return true;
 };
 

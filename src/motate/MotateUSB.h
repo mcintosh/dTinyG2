@@ -38,7 +38,7 @@
 
 namespace Motate {
 
-//#pragma mark struct USBSettings_t
+#pragma mark struct USBSettings_t
 
     extern uint8_t USBControlBuffer[512];
 
@@ -54,7 +54,7 @@ namespace Motate {
 
     typedef uint32_t EndpointBufferSettings_t;
 
-//#pragma mark struct USBDevice_t
+#pragma mark struct USBDevice_t
 
     // We'll define an "abstract" base class for USBDevice<...> so we can have a type for a pointer
     // to a USBDevice<...>.
@@ -112,7 +112,7 @@ namespace Motate {
 
 namespace Motate {
 
-//#pragma mark struct USBDevice<interfaceTypes...>
+#pragma mark struct USBDevice<interfaceTypes...>
 
     // You will need to have something like this in your project (in a .cpp file):
     //
@@ -446,7 +446,7 @@ namespace Motate {
     };
 
 
-//#pragma mark struct USBMixin<>
+#pragma mark struct USBMixin<>
     // Declare the base (Null) USBMixin template. This is the one that will be at the end of the chain.
     // NOTE: This intentionally does nothing, and must be specialized elesewhere to do important stuff...
     template < typename usb_parent_type, uint8_t position, typename interface0type >
@@ -475,7 +475,7 @@ namespace Motate {
         constexpr uint16_t getEndpointSizeFromMixin(const uint8_t &endpointNum, const USBDeviceSpeed_t deviceSpeed, const bool otherSpeed) { return 8; };
     };
 
-//#pragma mark struct USBMixinWrapper : USBMixin<usb_parent_type, position, firstInterfaceType>, USBMixinWrapper<usb_parent_type, position+1, interfaceTypes...>
+#pragma mark struct USBMixinWrapper : USBMixin<usb_parent_type, position, firstInterfaceType>, USBMixinWrapper<usb_parent_type, position+1, interfaceTypes...>
     // We need to be able to distinguish the first interface from the second, etc.
     // For example, two USBCDC interfaces will add two Serial objects to the USBDevice<>,
     // and we need a way to request the first vs the second.
@@ -577,7 +577,7 @@ namespace Motate {
         };
     };
 
-//#pragma mark struct USBMixinWrapper <usb_parent_type, position, firstInterfaceType>  : USBMixin<usb_parent_type, position, firstInterfaceType>
+#pragma mark struct USBMixinWrapper <usb_parent_type, position, firstInterfaceType>  : USBMixin<usb_parent_type, position, firstInterfaceType>
     template <typename usb_parent_type, uint8_t position, typename firstInterfaceType>
     struct USBMixinWrapper <usb_parent_type, position, firstInterfaceType>  : USBMixin<usb_parent_type, position, firstInterfaceType> {
         typedef USBMixin<usb_parent_type, position, firstInterfaceType> first_mixin;
@@ -629,7 +629,7 @@ namespace Motate {
         };
     };
 
-//#pragma mark struct USBMixins : USBMixinWrapper<usb_parent_type, 0, interfaceTypes...>
+#pragma mark struct USBMixins : USBMixinWrapper<usb_parent_type, 0, interfaceTypes...>
     template <typename usb_parent_type, typename... interfaceTypes>
     struct USBMixins : USBMixinWrapper<usb_parent_type, 0, interfaceTypes...> {
 
@@ -669,7 +669,7 @@ namespace Motate {
         };
     };
 
-//#pragma mark struct USBDefaultDescriptor <interfaceType> : USBDescriptorDevice_t
+#pragma mark struct USBDefaultDescriptor <interfaceType> : USBDescriptorDevice_t
     // Forward declaration to establish that this is a variadic template.
     template < typename... interfaceOtherTypes >
     struct USBDefaultDescriptor;

@@ -57,8 +57,12 @@ namespace Motate {
     template<> TIM_TypeDef * const  Timer<2>::tc()           { return TIM2; };
     template<> const IRQn_Type   Timer<2>::tcIRQ()        { return TIM2_IRQn; };
     template<> void Timer<2>::_enablePeripheralClock()    { __HAL_RCC_TIM2_CLK_ENABLE();};
-    template<> void Timer<2>::interrupt()				  {getInterruptCause();}
+    template<> void Timer<2>::interrupt();
 
+    template<> TIM_TypeDef * const  Timer<8>::tc()           { return TIM8; };
+    template<> const IRQn_Type   Timer<8>::tcIRQ()        { return TIM8_CC_IRQn; };
+    template<> void Timer<8>::_enablePeripheralClock()    { __HAL_RCC_TIM8_CLK_ENABLE();};
+    template<> void Timer<8>::interrupt()				  {getInterruptCause();}
 
 } // namespace Motate
 

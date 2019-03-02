@@ -65,15 +65,15 @@ StepDirStepper<Motate::kSocket4_StepPinNumber,
                Motate::kSocket4_VrefPinNumber>
     motor_4{};
 
- StepDirStepper<
-			Motate::kSocket5_StepPinNumber,
-			Motate::kSocket5_DirPinNumber,
-			Motate::kSocket5_EnablePinNumber,
-			Motate::kSocket5_Microstep_0PinNumber,
-			Motate::kSocket5_Microstep_1PinNumber,
-			Motate::kSocket5_Microstep_2PinNumber,
-			Motate::kSocket5_VrefPinNumber>
- 	motor_5 {};
+// StepDirStepper<
+//			Motate::kSocket5_StepPinNumber,
+//			Motate::kSocket5_DirPinNumber,
+//			Motate::kSocket5_EnablePinNumber,
+//			Motate::kSocket5_Microstep_0PinNumber,
+//			Motate::kSocket5_Microstep_1PinNumber,
+//			Motate::kSocket5_Microstep_2PinNumber,
+//			Motate::kSocket5_VrefPinNumber>
+// 	motor_5 {};
 
 // StepDirStepper<
 //    Motate::kSocket6_StepPinNumber,

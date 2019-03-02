@@ -456,7 +456,7 @@ struct Timer {
 			/* Set interrupt priority */
 
 			if (interrupts & kInterruptPriorityHighest) {
-				HAL_NVIC_SetPriority(tcIRQ(), 2, 0);
+				HAL_NVIC_SetPriority(tcIRQ(), 0, 0);
 			}
 			else if (interrupts & kInterruptPriorityHigh) {
 				HAL_NVIC_SetPriority(tcIRQ(), 5, 0);
@@ -501,7 +501,7 @@ struct Timer {
          TC_SR_MTIOB   (TC_SR) TIOB Mirror
 	 */
 
-	static TimerChannelInterruptOptions getInterruptCause() {
+	static inline TimerChannelInterruptOptions getInterruptCause() {
 		uint32_t status = Timer<timerNum>::tc()->SR;
 		if(status & TIM_FLAG_UPDATE)
 		{

@@ -115,34 +115,24 @@ namespace Motate {
 
 // Pin name and function
 //
-_MAKE_MOTATE_PIN(kSocket1_StepPinNumber, 'B', 5);            // Socket1_StepPinNumber
-_MAKE_MOTATE_PIN(kSocket1_DirPinNumber, 'B', 3);              // Socket1_DirPinNumber
-_MAKE_MOTATE_PIN(kSocket1_EnablePinNumber, 'A', 10);          // Socket1_EnablePinNumber
+_MAKE_MOTATE_PIN(kSocket1_StepPinNumber, 'D', 2);            // Socket1_StepPinNumber
+_MAKE_MOTATE_PIN(kSocket1_DirPinNumber, 'C', 12);              // Socket1_DirPinNumber
+_MAKE_MOTATE_PIN(kSocket1_EnablePinNumber, 'C', 10);          // Socket1_EnablePinNumber
 
+_MAKE_MOTATE_PIN(kSocket2_StepPinNumber, 'A', 15);            // Socket2_StepPinNumber
+_MAKE_MOTATE_PIN(kSocket2_DirPinNumber, 'A', 10);              // Socket2_DirPinNumber
+_MAKE_MOTATE_PIN(kSocket2_EnablePinNumber, 'C', 9);          // Socket2_EnablePinNumber
 
-_MAKE_MOTATE_PIN(kSocket2_StepPinNumber, 'A', 8);             // Socket2_StepPinNumber
-_MAKE_MOTATE_PIN(kSocket2_DirPinNumber, 'B', 10);              // Socket2_DirPinNumber
-_MAKE_MOTATE_PIN(kSocket2_EnablePinNumber, 'B', 4);           // Socket2_EnablePinNumber
+_MAKE_MOTATE_PIN(kSocket3_StepPinNumber, 'C', 8);            // Socket3_StepPinNumber
+_MAKE_MOTATE_PIN(kSocket3_DirPinNumber, 'C', 7);              // Socket3_DirPinNumber
+_MAKE_MOTATE_PIN(kSocket3_EnablePinNumber, 'B', 15);          // Socket3_EnablePinNumber
 
-_MAKE_MOTATE_PIN(kSocket3_StepPinNumber, 'C', 0);             // Socket2_StepPinNumber
-_MAKE_MOTATE_PIN(kSocket3_DirPinNumber, 'C', 1);              // Socket3_DirPinNumber
-_MAKE_MOTATE_PIN(kSocket3_EnablePinNumber, 'B', 0);           // Socket3_EnablePinNumber
+_MAKE_MOTATE_PIN(kSocket4_StepPinNumber, 'B', 14);            // Socket4_StepPinNumber
+_MAKE_MOTATE_PIN(kSocket4_DirPinNumber, 'B', 13);              // Socket4_DirPinNumber
+_MAKE_MOTATE_PIN(kSocket4_EnablePinNumber, 'B', 10);          // Socket4_EnablePinNumber
 
-_MAKE_MOTATE_PIN(kSocket4_StepPinNumber, 'A', 4);             // Socket4_StepPinNumber
-_MAKE_MOTATE_PIN(kSocket4_DirPinNumber, 'A', 1);              // Socket4_DirPinNumber
-_MAKE_MOTATE_PIN(kSocket4_EnablePinNumber, 'A', 0);           // Socket4_EnablePinNumber
+_MAKE_MOTATE_PIN(kLED_USBRXPinNumber, 'A', 2);
 
-_MAKE_MOTATE_PIN(kSocket5_StepPinNumber, 'A', 7);             // Socket4_StepPinNumber
-_MAKE_MOTATE_PIN(kSocket5_DirPinNumber, 'A', 6);              // Socket4_DirPinNumber
-_MAKE_MOTATE_PIN(kSocket5_EnablePinNumber, 'B', 6);           // Socket4_EnablePinNumber
-
-_MAKE_MOTATE_PIN(kLED_USBRXPinNumber, 'A', 5);           // Socket4_EnablePinNumber
-
-_MAKE_MOTATE_PIN(kInput1_PinNumber, 'B', 15);
-_MAKE_MOTATE_PIN(kInput3_PinNumber, 'B', 14);
-_MAKE_MOTATE_PIN(kInput6_PinNumber, 'B', 13);
-_MAKE_MOTATE_PIN(kInput7_PinNumber, 'B',  8);
-_MAKE_MOTATE_PIN(kInput8_PinNumber, 'B',  9);
 /*
 _MAKE_MOTATE_PIN(kADC1_PinNumber, 'C', 5);
 _MAKE_MOTATE_PIN(kADC0_PinNumber, 'A', 3);
@@ -175,14 +165,15 @@ struct AvailablePWMOutputPin<ReversePinLookup<'A', 15>::number> : RealPWMOutputP
 	};
 };
 */
-_MAKE_MOTATE_PIN(kSpindle_PwmPinNumber, 'B',  7);
+
+_MAKE_MOTATE_PIN(kSpindle_PwmPinNumber, 'B',  9);
 
 
 typedef TimerChannel<2,2> parentTimerType;
 template<>
-struct AvailablePWMOutputPin<ReversePinLookup<'B', 7>::number> : RealPWMOutputPin< ReversePinLookup<'B', 7>::number, parentTimerType>
+struct AvailablePWMOutputPin<ReversePinLookup<'B', 9>::number> : RealPWMOutputPin< ReversePinLookup<'B', 9>::number, parentTimerType>
 {
-	static const pin_number pinNum = ReversePinLookup<'B', 7>::number;
+	static const pin_number pinNum = ReversePinLookup<'B', 9>::number;
 	AvailablePWMOutputPin() : RealPWMOutputPin<pinNum, parentTimerType>(kOutputPWM)
 	{
 		pwmpin_init(false ? kPWMOnInverted : kPWMOn);
@@ -195,7 +186,7 @@ struct AvailablePWMOutputPin<ReversePinLookup<'B', 7>::number> : RealPWMOutputPi
 	// Signal to _GetAvailablePWMOrAlike that we're here, AND a real Pin<> exists.
 	static constexpr bool _isAvailable()
 	{
-		return !ReversePinLookup<'B', 7>::isNull();
+		return !ReversePinLookup<'B', 9>::isNull();
 	};
 };
 

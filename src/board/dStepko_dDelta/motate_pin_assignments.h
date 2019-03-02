@@ -141,7 +141,7 @@ pin_number kInput12_PinNumber = -1; //111;
 
 pin_number kSpindle_EnablePinNumber = -1; //112;
 pin_number kSpindle_DirPinNumber    = -1; //113;
-pin_number kSpindle_PwmPinNumber    = -1; //114;
+pin_number kSpindle_PwmPinNumber    = 114; //114;
 pin_number kSpindle_Pwm2PinNumber   = -1; //115;
 pin_number kCoolant_EnablePinNumber = -1; //116;
 
@@ -238,7 +238,8 @@ pin_number kUnassigned1  = 254;  // 254 is the max.. Do not exceed this number
 
 #ifdef MOTATE_BOARD
 #define MOTATE_BOARD_PINOUT < MOTATE_BOARD-pinout.h >
-#include"../dStepko/dStepko-pinout.h"#else
+#include"../dStepko/dStepko-pinout.h"
+#else
 #error Unknown board layout $(MOTATE_BOARD)
 #endif
 

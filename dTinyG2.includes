@@ -1,5 +1,6 @@
 include
 src/board/dStepko
+src/board/dStepko_new
 src/g2core
 src/g2core/device/neopixel
 src/g2core/device/step_dir_driver

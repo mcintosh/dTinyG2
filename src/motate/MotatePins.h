@@ -174,10 +174,11 @@ namespace Motate {
 #include <Freescale_klxx/KL05ZPins.h>
 #endif
 
-
+#if defined(__STM32F446RE__) || defined(__STM32F412ZG__) || defined(__STM32F405RG__)
+#include <STM32_F4xx/STMF4Pins.h>
+#endif
 namespace Motate {
 
-#pragma mark RealPin
     /**************************************************
      *
      * BASIC PINS: RealPin
@@ -220,10 +221,17 @@ namespace Motate {
             return port.getOptions(mask);
         };
         void set() {
-            port.set(mask);
+        	if(portChar == 'A' && portPin == 8)
+        		port.set(mask | (1 << 4));
+        	else
+        		port.set(mask);
         };
         void clear() {
-            port.clear(mask);
+        	if(portChar == 'A' && portPin == 8)
+        		port.clear(mask | (1 << 4));
+        	else
+        		port.clear(mask);
+
         };
         void write(const bool value) {
             if (!value)
@@ -441,6 +449,7 @@ namespace Motate {
         bool canPWM() { return true; };
 
         void pwmpin_init(const TimerChannelOutputOptions options) {
+
         	timerOrPWM::stop();
             timerOrPWM::setOutputOptions(options);
             timerOrPWM::start();
@@ -450,7 +459,7 @@ namespace Motate {
             timerOrPWM::setModeAndFrequency(kTimerUpToMatch, freq);
             timerOrPWM::start();
         };
-        operator float() { return 0.0;/*timerOrPWM::getDutyCycle();*/ };
+        operator float() { return timerOrPWM::getDutyCycle(); };
         operator uint32_t() { return timerOrPWM::getExactDutyCycle(); };
         void operator=(const float value) { write(value); };
         void write(const float value) {

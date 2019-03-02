@@ -344,29 +344,48 @@ void HAL_PCD_DisconnectCallback(PCD_HandleTypeDef *hpcd)
 USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
 {
 #ifdef USE_USB_FS
-  /* Set LL Driver parameters */
-  hpcd.Instance = USB_OTG_FS;
-  hpcd.Init.dev_endpoints = 4;
-  hpcd.Init.use_dedicated_ep1 = 0;
-  hpcd.Init.ep0_mps = 0x40;
-  hpcd.Init.dma_enable = 0;
-  hpcd.Init.low_power_enable = 0;
-  hpcd.Init.phy_itface = PCD_PHY_EMBEDDED;
-  hpcd.Init.Sof_enable = 0;
-  hpcd.Init.speed = PCD_SPEED_FULL;
-  hpcd.Init.vbus_sensing_enable = 0;
-  hpcd.Init.lpm_enable = 0;
-  
   /* Link The driver to the stack */
   hpcd.pData = pdev;
   pdev->pData = &hpcd;
-  
-  /* Initialize LL Driver */
-  HAL_PCD_Init(&hpcd);
-  
-  HAL_PCDEx_SetRxFiFo(&hpcd, 0x80);
-  HAL_PCDEx_SetTxFiFo(&hpcd, 0, 0x40);
-  HAL_PCDEx_SetTxFiFo(&hpcd, 1, 0x80);
+
+  hpcd.Instance = USB_OTG_FS;
+  hpcd.Init.dev_endpoints = 4;
+  hpcd.Init.speed = PCD_SPEED_FULL;
+  hpcd.Init.dma_enable = DISABLE;
+  hpcd.Init.ep0_mps = DEP0CTL_MPS_64;
+  hpcd.Init.phy_itface = PCD_PHY_EMBEDDED;
+  hpcd.Init.Sof_enable = DISABLE;
+  hpcd.Init.low_power_enable = DISABLE;
+  hpcd.Init.lpm_enable = DISABLE;
+  hpcd.Init.vbus_sensing_enable = ENABLE;
+  hpcd.Init.use_dedicated_ep1 = DISABLE;
+  if (HAL_PCD_Init(&hpcd) != HAL_OK)
+  {
+	  //Error_Handler();
+  }
+/*
+  // FIFO sizes in bytes (total available memory for FIFOs is 1.25 kB)
+  #ifndef OTG_RX_FIFO_SIZE
+  #define OTG_RX_FIFO_SIZE        (640U)
+  #endif
+  #ifndef OTG_TX0_FIFO_SIZE
+  #define OTG_TX0_FIFO_SIZE       (160U)
+  #endif
+  #ifndef OTG_TX1_FIFO_SIZE
+  #define OTG_TX1_FIFO_SIZE       (160U)
+  #endif
+  #ifndef OTG_TX2_FIFO_SIZE
+  #define OTG_TX2_FIFO_SIZE       (160U)
+  #endif
+  #ifndef OTG_TX3_FIFO_SIZE
+  #define OTG_TX3_FIFO_SIZE       (160U)
+  #endif
+  */
+  HAL_PCDEx_SetRxFiFo(&hpcd, 640U/4/*0x80*/);
+  HAL_PCDEx_SetTxFiFo(&hpcd, 0, 160U/4);
+  HAL_PCDEx_SetTxFiFo(&hpcd, 1, 160U/4);
+  HAL_PCDEx_SetTxFiFo(&hpcd, 2, 160U/4);
+  HAL_PCDEx_SetTxFiFo(&hpcd, 3, 160U/4);
 #endif
   
 #ifdef USE_USB_HS

@@ -2,7 +2,7 @@
  * encoder.h - encoder interface
  * This file is part of g2core project
  *
- * Copyright (c) 2013 - 2016 Alden S. Hart, Jr.
+ * Copyright (c) 2013 - 2018 Alden S. Hart, Jr.
  *
  * This file ("the software") is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2 as published by the
@@ -86,7 +86,7 @@
  *	not be worth the trouble).
  */
 
-#include "../board/dStepko/hardware.h"  // for MOTORS
+#include "hardware.h"  // for MOTORS
 
 #ifndef ENCODER_H_ONCE
 #define ENCODER_H_ONCE

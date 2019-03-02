@@ -253,8 +253,9 @@ struct PortHardware {
 			break;
 		case kOutputPWM:
 			GPIO_InitStructure.Mode      = GPIO_MODE_AF_PP;
-			GPIO_InitStructure.Speed     = GPIO_SPEED_FREQ_VERY_HIGH;
-			GPIO_InitStructure.Alternate = GPIO_AF1_TIM2;
+			GPIO_InitStructure.Pull      = GPIO_PULLDOWN;
+			GPIO_InitStructure.Speed     = GPIO_SPEED_FREQ_LOW;
+			GPIO_InitStructure.Alternate = GPIO_AF3_TIM8;
 			HAL_GPIO_Init(rawPort(), &GPIO_InitStructure);
 			break;
 		default:
